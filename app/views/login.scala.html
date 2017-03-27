@@ -61,7 +61,11 @@
 <script>
     var agents = {
         @for(agent <- agents) {
+             @if(agent.instructor) {
              "@agent.id": "@{routes.ApplicationController.all()}?key=@agent.key",
+             } else {
+             "@agent.id": "@{routes.ApplicationController.my()}?key=@agent.key",
+             }
         }
     }
 
