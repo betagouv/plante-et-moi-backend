@@ -26,6 +26,8 @@ class AgentService @Inject()(configuration: play.api.Configuration, settingServi
     JsPath.json.update(
       (JsPath \ 'key).json.copyFrom((JsPath \ 'email).json.pick[JsString].map{ jsString => JsString(Hash.sha256(s"${jsString.value}$city$cryptoSecret")) })
     ) andThen JsPath.json.update(
+      (JsPath \ 'id).json.copyFrom((JsPath \ 'email).json.pick[JsString].map{ jsString => JsString(Hash.md5(s"${jsString.value}$city$cryptoSecret")) })
+    ) andThen JsPath.json.update(
       (JsPath \ 'city).json.put(JsString(city))
     ) andThen Json.reads[Agent]
   }

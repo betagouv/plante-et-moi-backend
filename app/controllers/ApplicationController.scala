@@ -10,7 +10,7 @@ import org.joda.time.DateTime
 import play.api.data._
 import play.api.data.Forms._
 import play.api.libs.mailer.MailerClient
-import actions.LoginAction
+import actions.{LoginAction, RequestWithAgent}
 
 import scala.concurrent.Future
 import play.api.libs.mailer._
@@ -155,8 +155,8 @@ class ApplicationController @Inject() (ws: WSClient,
     }
   }
 
-  private def sendNewApplicationEmailToAgent(application: models.Application, request: RequestHeader)(agent: Agent) = {
-    val url = s"${routes.ApplicationController.show(application.id).absoluteURL()(request)}?key=${agent.key}"
+  private def sendNewApplicationEmailToAgent(application: models.Application, request: RequestWithAgent[AnyContent])(agent: Agent) = {
+    val url = s"${routes.ApplicationController.show(application.id).absoluteURL()(request)}?city=${request.currentCity}&key=${agent.key}"
     val title = agent.finalReview match {
       case true => s"Demande d'avis final permis de végétalisation: ${application.address}"
       case false => s"Demande d'avis permis de végétalisation: ${application.address}"
@@ -177,8 +177,8 @@ class ApplicationController @Inject() (ws: WSClient,
     mailerClient.send(email)
   }
 
-  private def sendCompletedApplicationEmailToAgent(application: models.Application, request: RequestHeader, finalAgent: Agent)(agent: Agent) = {
-    val url = s"${routes.ApplicationController.show(application.id).absoluteURL()(request)}?key=${agent.key}"
+  private def sendCompletedApplicationEmailToAgent(application: models.Application, request: RequestWithAgent[AnyContent], finalAgent: Agent)(agent: Agent) = {
+    val url = s"${routes.ApplicationController.show(application.id).absoluteURL()(request)}?city=${request.currentCity}&key=${agent.key}"
     val email = Email(
       s"Avis final donné demande de végétalisation: ${application.address}",
       "Plante et Moi <administration@plante-et-moi.fr>",
