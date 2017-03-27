@@ -24,17 +24,17 @@ import scala.util.{Failure, Success}
 @Singleton
 class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Configuration, ws: WSClient, applicationService: ApplicationService, mailerClient: MailerClient, emailTemplateService: EmailTemplateService) {
 
-  private case class TypeformQuestion(id: String, question: String, field_id: Int)
-  private case class TypeformStats(responses: Map[String,Int])
-  private case class TypeformMetadata(browser: String,
+  private case class Question(id: String, question: String, field_id: Int)
+  private case class Stats(responses: Map[String,Int])
+  private case class Metadata(browser: String,
                               platform: String,
                               date_land: DateTime,
                               date_submit: DateTime,
                               user_agent: String,
                               referer: String,
                               network_id: String)
-  private case class TypeformResponse(completed: String, token: String, metadata: TypeformMetadata, hidden: Map[String, Option[String]], answers: Map[String, String])
-  private case class TypeformResult(http_status: Int, stats: TypeformStats, questions: List[TypeformQuestion], responses: List[TypeformResponse])
+  private case class Response(completed: String, token: String, metadata: Metadata, hidden: Map[String, Option[String]], answers: Map[String, String])
+  private case class Result(http_status: Int, stats: Stats, questions: List[Question], responses: List[Response])
 
 
   private implicit val optionMap = Reads[Option[String]]{
@@ -44,11 +44,11 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
   }
   //private implicit val hiddenMap = Reads.mapReads[Option[String]]
   private implicit val dateReads = Reads.jodaDateReads("yyyy-MM-dd HH:mm:ss")
-  private implicit val metadataReads = Json.reads[TypeformMetadata]
-  private implicit val questionReads = Json.reads[TypeformQuestion]
-  private implicit val statsReads = Json.reads[TypeformStats]
-  private implicit val responseReads = Json.reads[TypeformResponse]
-  private implicit val resultReads = Json.reads[TypeformResult]
+  private implicit val metadataReads = Json.reads[Metadata]
+  private implicit val questionReads = Json.reads[Question]
+  private implicit val statsReads = Json.reads[Stats]
+  private implicit val responseReads = Json.reads[Response]
+  private implicit val resultReads = Json.reads[Result]
 
 
   def getForm(id: String, key: String, completed: Boolean, limit: Int = 20, orderBy: String = "date_submit,desc") = {
@@ -62,8 +62,8 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
   }
 
   private lazy val typeformIds = configuration.underlying.getString("typeform.ids").split(",")
-  private lazy val typeformKey = configuration.underlying.getString("typeform.key")
-  private lazy val typeformDomains = configuration.underlying.getString("typeform.domains").split(",")
+  lazy val key = configuration.underlying.getString("typeform.key")
+  private lazy val domains = configuration.underlying.getString("typeform.domains").split(",")
 
   private val refresh = configuration.getMilliseconds("typeform.refresh") match {
     case Some(t) => t millis
@@ -75,11 +75,11 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
 
   private def refreshTask = {
     val responses = Future.reduce(typeformIds.map{ id =>
-      getForm(id, typeformKey, true, 100).map { response =>
-        val result = response.json.validate[TypeformResult]
+      getForm(id, key, true, 100).map { response =>
+        val result = response.json.validate[Result]
         var applications = List[Application]()
         result match {
-          case success: JsSuccess[TypeformResult] =>
+          case success: JsSuccess[Result] =>
             Logger.info(s"TypeformService: convert data for $id")
             val result = success.get
             applications = result.responses
@@ -117,9 +117,9 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
     }
   }
 
-  private def filterPerDomains(response: TypeformResponse): Boolean = {
+  private def filterPerDomains(response: Response): Boolean = {
     val domain = response.hidden("domain").getOrElse("nodomain")
-    typeformDomains.contains(domain)
+    domains.contains(domain)
   }
 
   private def sendNewApplicationEmail(emailTemplate: EmailTemplate)(application: models.Application) = {
@@ -163,7 +163,7 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
     mailerClient.send(email)
   }
 
-  def mapResponseToApplication(questions: List[TypeformQuestion])(response: TypeformResponse) = {
+  def mapResponseToApplication(questions: List[Question])(response: Response) = {
     val _type = response.hidden("type").get.stripPrefix("projet de ").stripSuffix(" fleuris").capitalize
     val lat = response.hidden("lat").get.toDouble
     val lon = response.hidden("lon").get.toDouble
