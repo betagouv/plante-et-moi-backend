@@ -2,12 +2,11 @@ package services
 
 import javax.inject.Inject
 
-import anorm.Column.{className, nonNull, timestamp}
-import anorm.{Column, Macro, MetaDataItem, RowParser, SQL, TypeDoesNotMatch}
+import anorm.Column._
+import anorm.{Macro, MetaDataItem, RowParser, SQL, TypeDoesNotMatch}
 import models.{Application, Coordinates}
 import play.api.db.DBApi
 import play.api.libs.json._
-import anorm.SqlParser.get
 import anorm._
 import anorm.JodaParameterMetaData._
 
@@ -44,7 +43,7 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
 
 
   val simple: RowParser[Application] = Macro.parser[Application](
-    "id", "city", "status", "firstname", "lastname", "email", "type", "address", "creation_date", "coordinates", "source", "source_id", "phone", "fields", "files"
+    "id", "city", "status", "applicant_firstname", "applicant_lastname", "applicant_email", "applicant_address", "type", "address", "creation_date", "coordinates", "source", "source_id", "applicant_phone", "fields", "files"
   )
 
   def findByApplicationId(applicationId: String) = db.withConnection { implicit connection =>
@@ -55,15 +54,16 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
     SQL(
       """
           INSERT INTO application_imported VALUES (
-            {id}, {city}, {firstname}, {lastname}, {email}, {type}, {address}, {creation_date}, point({latitude}, {longitude}), {source}, {source_id}, {phone}, {fields},{files}
+            {id}, {city}, {applicant_firstname}, {applicant_lastname}, {applicant_email}, {applicant_address}, {type}, {address}, {creation_date}, point({latitude}, {longitude}), {source}, {source_id}, {applicant_phone}, {fields},{files}
           )
       """
     ).on(
       'id -> application.id,
       'city -> application.city,
-      'firstname -> application.firstname,
-      'lastname -> application.lastname,
-      'email -> application.email,
+      'applicant_firstname -> application.applicantFirstname,
+      'applicant_lastname -> application.applicantLastname,
+      'applicant_email -> application.applicantEmail,
+      'applicant_address -> application.applicantAddress,
       'type -> application._type,
       'address -> application.address,
       'creation_date -> application.creationDate,
@@ -71,7 +71,7 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
       'longitude -> application.coordinates.longitude,
       'source -> application.source,
       'source_id -> application.sourceId,
-      'phone -> application.phone,
+      'applicant_phone -> application.applicantPhone,
       'fields -> Json.toJson(application.fields),
       'files -> Json.toJson(application.files)
     ).executeUpdate()

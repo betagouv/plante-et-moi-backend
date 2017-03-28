@@ -128,13 +128,13 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
          |${application.creationDate.toString("dd MMM YYYY", new Locale("fr"))}
          |
          |- Nom:
-         |${application.lastname}
+         |${application.applicantLastname}
          |
          |- Prénom:
-         |${application.firstname}
+         |${application.applicantFirstname}
          |
          |- Email:
-         |${application.email}
+         |${application.applicantEmail}
          |
          |- Type:
          |${application._type}
@@ -143,7 +143,7 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
          |${application.address}
          |
          |- Numéro de téléphone:
-         |${application.phone.getOrElse("pas de numéro de téléphone")}
+         |${application.applicantPhone.getOrElse("pas de numéro de téléphone")}
          |
          ${application.fields.map{ case (key, value) => s"|- $key:\n $value\n" }.mkString}
          |- Nombre de fichiers joint à la demande: ${application.files.length}
@@ -155,11 +155,11 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
     val email = Email(
       emailTemplate.title,
       emailTemplate.from,
-      Seq(s"${application.name} <${application.email}>"),
+      Seq(s"${application.applicantName} <${application.applicantEmail}>"),
       bodyText = Some(body),
       replyTo = emailTemplate.replyTo
     )
-    Logger.info(s"Send mail to ${application.email}")
+    Logger.info(s"Send mail to ${application.applicantEmail}")
     mailerClient.send(email)
   }
 
@@ -174,9 +174,10 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
 
     var address = response.hidden("address").get
     var email = "inconnue@example.com"
-    var firstname = "John"
-    var lastname = "Doe"
-    var phone: Option[String] = None
+    var applicantFirstname = "John"
+    var applicantLastname = "Doe"
+    var applicantPhone: Option[String] = None
+    var applicantAddress: Option[String] = None
 
     var fields = mutable.Map[String,String]()
     var files = ListBuffer[String]()
@@ -189,12 +190,14 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
           email = answer._2
         case (id, Some(question)) if id.startsWith("textfield_") && question.toLowerCase.contains("adresse de votre") =>
           address = answer._2
-        case (id, Some(question)) if id.startsWith("textfield_") && question.toLowerCase.contains("prénom") =>
-          firstname = answer._2
-        case (id, Some(question)) if id.startsWith("textfield_") && question.toLowerCase.endsWith("nom") =>
-          lastname = answer._2
+        case (id, Some(question)) if id.startsWith("textfield_") && question.toLowerCase.endsWith("prénom") =>
+          applicantFirstname = answer._2
+        case (id, Some(question)) if id.startsWith("textfield_") && question.toLowerCase.endsWith(" nom") =>
+          applicantLastname = answer._2
         case (id, Some(question)) if id.startsWith("textfield_") && question.toLowerCase.contains("téléphone") =>
-          phone = Some(answer._2)
+          applicantPhone = Some(answer._2)
+        case (id, Some(question)) if id.startsWith("textfield_") && question.toLowerCase.endsWith("adresse postale") =>
+          applicantAddress = Some(answer._2)
         case (id, Some(question)) if id.startsWith("yesno_") =>
           val answerString = answer._2 match {
             case "1" => "Oui"
@@ -210,6 +213,6 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
     }
     var source = "typeform"
     var applicationId = Hash.md5(s"$source$typeformId")
-    models.Application(applicationId, city, "Nouvelle", firstname, lastname, email, _type, address, date, coordinates, source, typeformId, phone, fields.toMap, files.toList)
+    models.Application(applicationId, city, "Nouvelle", applicantFirstname, applicantLastname, email, applicantAddress, _type, address, date, coordinates, source, typeformId, applicantPhone, fields.toMap, files.toList)
   }
 }

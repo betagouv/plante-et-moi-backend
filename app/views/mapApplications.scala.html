@@ -25,7 +25,7 @@
 	var projects = [
 	@for((application, reviews) <- applications) {
         { latlng: { lat: @application.coordinates.latitude, lng: @application.coordinates.longitude },
-          name: "@application.name",
+          name: "@application.applicantName",
           address: "@application.address",
           status: "@application.status",
           type: "@application._type"

@@ -5,19 +5,20 @@ import org.joda.time.DateTime
 case class Application(id: String,
                        city: String,
                        status: String,
-                       firstname: String,
-                       lastname: String,
-                       email: String,
+                       applicantFirstname: String,
+                       applicantLastname: String,
+                       applicantEmail: String,
+                       applicantAddress: Option[String] = None,
                        _type: String,
                        address: String,
                        creationDate: DateTime,
                        coordinates: Coordinates,
                        source: String,
                        sourceId: String,
-                       phone: Option[String] = None,
+                       applicantPhone: Option[String] = None,
                        fields: Map[String, String] = Map(),
                        files: List[String] = List()) {
-   val name = s"${firstname.capitalize} ${lastname.capitalize}"
+   val applicantName = s"${applicantFirstname.capitalize} ${applicantLastname.capitalize}"
    private def imageFilter(fileName: String) = List("jpg","jpeg","png").exists(fileName.toLowerCase().endsWith(_))
    def imagesFiles() = files.filter(imageFilter)
    def notImageFiles() = files.filter(!imageFilter(_))
