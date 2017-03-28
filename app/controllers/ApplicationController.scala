@@ -36,7 +36,7 @@ class ApplicationController @Inject() (ws: WSClient,
       request = request.withQueryString("key" -> typeformService.key)
     }
     request.get().map { fileResult =>
-      if(fileResult.status < 300) {
+      if(fileResult.status >= 300) {
         NotFound("")
       } else {
         val contentType = fileResult.header("Content-Type").getOrElse("text/plain")
@@ -158,8 +158,8 @@ class ApplicationController @Inject() (ws: WSClient,
   private def sendNewApplicationEmailToAgent(application: models.Application, request: RequestWithAgent[AnyContent])(agent: Agent) = {
     val url = s"${routes.ApplicationController.show(application.id).absoluteURL()(request)}?city=${request.currentCity}&key=${agent.key}"
     val title = agent.finalReview match {
-      case true => s"Demande d'avis final permis de végétalisation: ${application.address}"
-      case false => s"Demande d'avis permis de végétalisation: ${application.address}"
+      case true => s"Demande d'avis final permis de végétalisation : ${application.address}"
+      case false => s"Demande d'avis permis de végétalisation : ${application.address}"
     }
     val email = Email(
       title,
@@ -168,11 +168,12 @@ class ApplicationController @Inject() (ws: WSClient,
       bodyText = Some(s"""Bonjour ${agent.name},
                     |
                     |Nous avons besoin de votre avis pour une demande de végétalisation au ${application.address} (c'est un projet de ${application._type}).
-                    |Vous pouvez voir la demande et laisser mon avis en ouvrant la page suivante:
+                    |Vous pouvez voir la demande et laisser votre avis en ouvrant la page suivante :
                     |${url}
                     |
                     |Merci de votre aide,
-                    |Si vous avez des questions, n'hésitez pas à nous contacter en répondant à ce mail""".stripMargin)
+                    |Si vous avez des questions, n'hésitez pas à nous contacter en répondant à ce mail,
+                    |Equipe Plante Et Moi""".stripMargin)
     )
     mailerClient.send(email)
   }
@@ -180,13 +181,13 @@ class ApplicationController @Inject() (ws: WSClient,
   private def sendCompletedApplicationEmailToAgent(application: models.Application, request: RequestWithAgent[AnyContent], finalAgent: Agent)(agent: Agent) = {
     val url = s"${routes.ApplicationController.show(application.id).absoluteURL()(request)}?city=${request.currentCity}&key=${agent.key}"
     val email = Email(
-      s"Avis final donné demande de végétalisation: ${application.address}",
+      s"Avis final donné demande de végétalisation : ${application.address}",
       "Plante et Moi <administration@plante-et-moi.fr>",
       Seq(s"${agent.name} <${agent.email}>"),
       bodyText = Some(s"""Bonjour ${agent.name},
                          |
                          |L'avis final a été donné par ${finalAgent.name} pour la demande de végétalisation au ${application.address} (c'est un projet de ${application._type}).
-                         |Vous pouvez voir la demande ici:
+                         |Vous pouvez voir la demande ici :
                          |${url}
                          |
                          |""".stripMargin)

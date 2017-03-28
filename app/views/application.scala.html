@@ -1,7 +1,7 @@
 @(application: models.Application, agent: Agent, reviews: List[(Review, Agent)])(implicit flash: Flash)
 @import java.util.Locale
 
-@main(agent)(s"${application.address} (${application._type}) / Status: ${application.status}")  {
+@main(agent)(s"${application.address} (${application._type}) / Statut: ${application.status}")  {
     <link rel="stylesheet" href="https://unpkg.com/leaflet@@1.0.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@@1.0.1/dist/leaflet.js"></script>
     <script src='@routes.Assets.versioned("javascripts/Leaflet+Data.js")'></script>
@@ -143,7 +143,7 @@
             @defining(reviews.find(_._1.agentId == agent.id).map(_._1)) { currentReview =>
                 <h3 class="mdl-cell mdl-cell--12-col">@if(currentReview.isEmpty) { Ajouter } else { Modifier } mon avis en tant @if("aeiou".contains(agent.qualite.charAt(0).toLower)){ qu'} else { que }@agent.qualite</h3>
                 @if(agent.finalReview) {
-                    <h4 style="color: red">Votre avis est final, une fois donné, il empéchera le dépot de nouveaux avis</h4>
+                    <h4 style="color: red">Votre avis est final, s'il est favorable, il déclenchera l'envoi du permis par l'agent instructeur (et empêchera le dépot de nouveaux avis).</h4>
                 }
                 <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect mdl-cell mdl-cell--5-col mdl-cell--1-offset" for="option-1">
                     <input type="radio" id="option-1" class="mdl-radio__button" name="favorable" value="true" @if(currentReview.map(_.favorable).getOrElse(false)){checked}>
