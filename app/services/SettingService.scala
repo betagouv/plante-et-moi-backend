@@ -18,7 +18,6 @@ class SettingService @Inject()(dbapi: DBApi, configuration: Configuration) exten
   private val defaultValues = Map(
     "AGENTS" -> Json.arr(
       Json.obj(
-        "id" -> "admin",
         "name" -> "Jean Paul",
         "qualite" -> "service développement durable",
         "email" -> "jean.paul.durable@example.com",
@@ -28,7 +27,6 @@ class SettingService @Inject()(dbapi: DBApi, configuration: Configuration) exten
         "finalReview" -> false
       ),
       Json.obj(
-        "id" -> "voirie",
         "name" -> "Jean Marc",
         "qualite" -> "service de la voirie",
         "email" -> "jean.marc.voirie@example.com",
@@ -38,7 +36,6 @@ class SettingService @Inject()(dbapi: DBApi, configuration: Configuration) exten
         "finalReview" -> false
       ),
       Json.obj(
-        "id" -> "elu",
         "name" -> "Natasha Dupond",
         "qualite" -> "adjointe au maire, parc et jardins",
         "email" -> "natasha.dupond.elu@example.com",
