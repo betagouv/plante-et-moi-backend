@@ -14,7 +14,7 @@ class NotificationsService @Inject()(system: ActorSystem, configuration: play.ap
 
 
     private val host = configuration.underlying.getString("app.host")
-    private val https = configuration.underlying.getString("app.https") == true
+    private val https = configuration.underlying.getString("app.https") == "true"
 
     def newApplication(application: Application): Boolean = {
       emailTemplateService.get(application.city, "RECEPTION_EMAIL").fold {
