@@ -62,9 +62,7 @@ class SettingService @Inject()(dbapi: DBApi, configuration: Configuration) exten
                    |
                    |Si vous avez des questions, n'hésitez pas à nous contacter,
                    |Plante et Moi""".stripMargin
-    ),
-    "HOST" -> JsString("localhost:9000"),
-    "HTTPS" -> JsBoolean(false)
+    )
   )
 
   @inline private def className(that: Any): String =

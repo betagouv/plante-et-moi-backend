@@ -12,6 +12,10 @@ import play.api.libs.mailer.{Email, MailerClient}
 @Singleton
 class NotificationsService @Inject()(system: ActorSystem, configuration: play.api.Configuration, mailerClient: MailerClient, emailTemplateService: EmailTemplateService, agentService: AgentService, settingService: SettingService) {
 
+
+    private val host = configuration.underlying.getString("app.host")
+    private val https = configuration.underlying.getString("app.https") == true
+
     def newApplication(application: Application): Boolean = {
       emailTemplateService.get(application.city, "RECEPTION_EMAIL").fold {
         Logger.error(s"No RECEPTION_EMAIL email template for city ${application.city}")
@@ -33,8 +37,6 @@ class NotificationsService @Inject()(system: ActorSystem, configuration: play.ap
     }
 
     private def generateInstructorEmail(emailApplicant: Email, application: models.Application)(agent: Agent): Email = {
-       val host = settingService.findByKey(application.city)("HOST").get._2.as[String]
-       val https = settingService.findByKey(application.city)("HTTPS").get._2.as[Boolean]
        val url = s"${routes.ApplicationController.show(application.id).absoluteURL(https, host)}?city=${application.city}&key=${agent.key}"
 
        val body = s"""
