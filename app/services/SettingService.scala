@@ -6,8 +6,7 @@ import anorm.Column.nonNull
 import anorm.{MetaDataItem, SQL, SqlParser, TypeDoesNotMatch}
 import play.api.Configuration
 import play.api.db.DBApi
-import play.api.libs.json.{JsObject, JsValue, Json}
-import utils.Hash
+import play.api.libs.json._
 
 @javax.inject.Singleton
 class SettingService @Inject()(dbapi: DBApi, configuration: Configuration) extends AnormJson with AnormCoordinate {
@@ -63,7 +62,9 @@ class SettingService @Inject()(dbapi: DBApi, configuration: Configuration) exten
                    |
                    |Si vous avez des questions, n'hésitez pas à nous contacter,
                    |Plante et Moi""".stripMargin
-    )
+    ),
+    "HOST" -> JsString("localhost:9000"),
+    "HTTPS" -> JsBoolean(false)
   )
 
   @inline private def className(that: Any): String =

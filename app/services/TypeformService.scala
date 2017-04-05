@@ -22,7 +22,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 @Singleton
-class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Configuration, ws: WSClient, applicationService: ApplicationService, mailerClient: MailerClient, emailTemplateService: EmailTemplateService) {
+class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Configuration, ws: WSClient, applicationService: ApplicationService, notificationsService: NotificationsService) {
 
   private case class Question(id: String, question: String, field_id: Int)
   private case class Stats(responses: Map[String,Int])
@@ -103,14 +103,12 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
   }
 
   private def manageApplicationForCity(city: String, applications: List[Application]): Unit = {
-    emailTemplateService.get(city, "RECEPTION_EMAIL").fold {
-      Logger.error(s"No RECEPTION_EMAIL email template for city $city")
-    } { emailTemplate =>
-      applications foreach { application =>
-        val app = applicationService.findByApplicationId(application.id)
-        if (app.isEmpty) {
-          Logger.info(s"Import application for ${application.address}")
-          sendNewApplicationEmail(emailTemplate)(application)
+    applications foreach { application =>
+      val app = applicationService.findByApplicationId(application.id)
+      if (app.isEmpty) {
+        Logger.info(s"Import application for ${application.address}")
+        val succesNotification = notificationsService.newApplication(application)
+        if (succesNotification) {
           applicationService.insert(application)
         }
       }
@@ -120,47 +118,6 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
   private def filterPerDomains(response: Response): Boolean = {
     val domain = response.hidden("domain").getOrElse("nodomain")
     domains.contains(domain)
-  }
-
-  private def sendNewApplicationEmail(emailTemplate: EmailTemplate)(application: models.Application) = {
-    val applicationString =
-      s"""- Date de la demande:
-         |${application.creationDate.toString("dd MMM YYYY", new Locale("fr"))}
-         |
-         |- Nom:
-         |${application.applicantLastname}
-         |
-         |- Prénom:
-         |${application.applicantFirstname}
-         |
-         |- Email:
-         |${application.applicantEmail}
-         |
-         |- Type:
-         |${application._type}
-         |
-         |- Address du projet:
-         |${application.address}
-         |
-         |- Numéro de téléphone:
-         |${application.applicantPhone.getOrElse("pas de numéro de téléphone")}
-         |
-         ${application.fields.map{ case (key, value) => s"|- $key:\n $value\n" }.mkString}
-         |- Nombre de fichiers joint à la demande: ${application.files.length}
-       """.stripMargin
-    val body = emailTemplate.body
-      .replaceAll("<application.id>", application.id)
-      .replaceAll("<application>", applicationString)
-
-    val email = Email(
-      emailTemplate.title,
-      emailTemplate.from,
-      Seq(s"${application.applicantName} <${application.applicantEmail}>"),
-      bodyText = Some(body),
-      replyTo = emailTemplate.replyTo
-    )
-    Logger.info(s"Send mail to ${application.applicantEmail}")
-    mailerClient.send(email)
   }
 
   def mapResponseToApplication(questions: List[Question])(response: Response) = {
