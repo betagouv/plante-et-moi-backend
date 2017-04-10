@@ -108,4 +108,16 @@ html, body {
     .mdl-cell--6-col-print {
         width: calc(50% - 16px) !important;
     }
+    .mdl-cell--8-col-print {
+         width: calc(66.6666666% - 16px) !important;
+    }
+    .mdl-cell--4-col-print {
+         width: calc(33.3333333% - 16px) !important;
+    }
+    .mdl-layout {
+        height: initial;
+    }
+    .mdl-data-table td:first-of-type, .mdl-data-table th:first-of-type {
+        padding-left: 2px;
+    }
 }

@@ -39,7 +39,7 @@
     </div>
 </div>
 
-<table class="application mdl-data-table mdl-js-data-table mdl-cell @if(application.imagesFiles().isEmpty) {mdl-cell--12-col} else {mdl-cell--6-col} mdl-cell--12-col-phone mdl-cell--6-col-print mdl-shadow--2dp" style="table-layout: fixed;">
+<table class="application mdl-data-table mdl-js-data-table mdl-cell @if(application.imagesFiles().isEmpty) {mdl-cell--12-col} else {mdl-cell--6-col} mdl-cell--12-col-phone mdl-cell--8-col-print mdl-shadow--2dp" style="table-layout: fixed;">
     <tbody>
     <tr>
         <td class="mdl-data-table__cell--non-numeric application__key" >Status</td>
@@ -92,7 +92,7 @@
     </tbody>
 </table>
 @if(!application.imagesFiles().isEmpty) {
-<div class="mdl-cell mdl-cell--6-col mdl-cell--12-col-phone mdl-cell--6-col-print mdl-grid mdl-grid--no-spacing">
+<div class="mdl-cell mdl-cell--6-col mdl-cell--12-col-phone mdl-cell--4-col-print mdl-grid mdl-grid--no-spacing">
     @application.imagesFiles().map { file =>
     <div class="mdl-card mdl-shadow--2dp mdl-cell mdl-cell--12-col">
         <img src="data:image/png;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" data-src='@routes.ApplicationController.getImage(file)' style="width: 100%; margin: 0px;">
