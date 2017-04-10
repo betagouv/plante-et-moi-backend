@@ -121,7 +121,9 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
   }
 
   def mapResponseToApplication(questions: List[Question])(response: Response) = {
-    val _type = response.hidden("type").get.stripPrefix("projet de ").stripSuffix(" fleuris").capitalize
+    val hiddenType = response.hidden("type").get
+
+    val _type = hiddenType.stripPrefix("projet de ").stripSuffix(" fleuris").capitalize
     val lat = response.hidden("lat").get.toDouble
     val lon = response.hidden("lon").get.toDouble
     val coordinates = Coordinates(lat, lon)
@@ -129,7 +131,9 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
     val typeformId = response.token
     val date = response.metadata.date_submit
 
-    var address = response.hidden("address").get
+    val hiddenAddress = response.hidden("address").get
+
+    var address = hiddenAddress
     var email = "inconnue@example.com"
     var applicantFirstname = "John"
     var applicantLastname = "Doe"
@@ -139,7 +143,9 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
     var fields = mutable.Map[String,String]()
     var files = ListBuffer[String]()
     response.answers.foreach { answer =>
-      val question = questions.find(_.id == answer._1).map(_.question.replaceAll("<[^>]*>", ""))
+      val question = questions.find(_.id == answer._1).map(
+        _.question.replaceAll("<[^>]*>", "").replaceAll("\\{\\{hidden_address\\}\\}", hiddenAddress).replaceAll("\\{\\{hidden_type\\}\\}", hiddenType)
+      )
       (answer._1, question) match {
         case (id, _) if id.startsWith("fileupload_") =>
           files += answer._2.split('?')(0)
