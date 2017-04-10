@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.green-blue.min.css" />
-    <link rel="stylesheet" media="screen" href='@routes.Assets.versioned("stylesheets/main.css")'>
+    <link rel="stylesheet" media="screen,print" href='@routes.Assets.versioned("stylesheets/main.css")'>
     @header
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <style>
@@ -37,7 +37,7 @@
     </style>
 </head>
 <body>
-<div class="header__ribbon" id="header__ribbon" style="display: none">
+<div class="header__ribbon do-not-print" id="header__ribbon" style="display: none">
     DEMO
 </div>
 <script>
@@ -46,7 +46,7 @@
     }
 </script>
 <div class="demo-layout mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
-    <header class="demo-header mdl-layout__header mdl-color--grey-100 mdl-color-text--grey-600">
+    <header class="demo-header mdl-layout__header mdl-color--grey-100 mdl-color-text--grey-600 do-not-print">
         <div class="mdl-layout__header-row">
             <span class="mdl-layout-title">@title</span>
             <div class="mdl-layout-spacer"></div>
@@ -63,7 +63,7 @@
             -->
         </div>
     </header>
-    <div class="demo-drawer mdl-layout__drawer mdl-color--blue-grey-900 mdl-color-text--blue-grey-50">
+    <div class="demo-drawer mdl-layout__drawer mdl-color--blue-grey-900 mdl-color-text--blue-grey-50 do-not-print">
         <header class="demo-drawer-header" style="display: -webkit-flex;
                 display: -ms-flexbox;
                 display: flex;">

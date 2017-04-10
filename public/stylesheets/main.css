@@ -89,3 +89,23 @@ html, body {
 .demo-content {
   max-width: 1080px;
 }
+
+@media print {
+    .mdl-layout--fixed-drawer > .mdl-layout__content {
+        margin-left: 0px !important;
+    }
+    .do-not-print {
+        display:none !important;
+    }
+    .mdl-data-table tbody tr {
+        height: 15px;
+        padding: 2px;
+    }
+    .mdl-data-table td {
+        height: 15px;
+        padding: 2px;
+    }
+    .mdl-cell--6-col-print {
+        width: calc(50% - 16px) !important;
+    }
+}
