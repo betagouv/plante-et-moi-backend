@@ -112,7 +112,7 @@ div hr:last-child {
 </div>
 }
 
-@if(comments.isEmpty) {
+@if(!comments.isEmpty) {
     <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
         <h3 class="mdl-cell mdl-cell--12-col">Commentaires</h3>
     @for((comment,commentAgent) <- comments) {
@@ -123,7 +123,8 @@ div hr:last-child {
         <hr>
     }
     </div>
-}@if(agent.instructor) {
+}
+@if(agent.instructor) {
 <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
     <form action="@routes.ApplicationController.addComment(application.id)" class="mdl-grid" method="post">
         <h4 class="mdl-cell mdl-cell--12-col">Ajouter un commentaire pour l'instruction</h4>
