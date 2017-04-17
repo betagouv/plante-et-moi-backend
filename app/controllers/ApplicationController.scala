@@ -14,7 +14,8 @@ import actions.{LoginAction, RequestWithAgent}
 
 import scala.concurrent.Future
 import play.api.libs.mailer._
-import services.{ApplicationService, TypeformService}
+import services.{ApplicationService, CommentService, TypeformService}
+import utils.{Hash, UUID}
 
 @Singleton
 class ApplicationController @Inject() (ws: WSClient,
@@ -24,6 +25,7 @@ class ApplicationController @Inject() (ws: WSClient,
                                        agentService: AgentService,
                                        loginAction: LoginAction,
                                        applicationService: ApplicationService,
+                                       commentService: CommentService,
                                        typeformService: TypeformService) extends Controller {
 
   def projects(city: String) = applicationService.findByCity(city).map { application =>
@@ -73,11 +75,16 @@ class ApplicationController @Inject() (ws: WSClient,
         case None =>
           NotFound("")
         case Some(application) =>
+          val agents = agentService.all(request.currentCity)
           val reviews = reviewService.findByApplicationId(id)
               .map { review =>
-                review -> agentService.all(request.currentCity).find(_.id == review.agentId).get
+                review -> agents.find(_.id == review.agentId).get
               }
-          Ok(views.html.application(application._1, agent, reviews))
+          val comments = commentService.findByApplicationId(id)
+                .map { comment =>
+                  comment -> agents.find(_.id == comment.agentId).get
+                }
+          Ok(views.html.application(application._1, agent, reviews, comments))
     }
   }
 
@@ -98,6 +105,25 @@ class ApplicationController @Inject() (ws: WSClient,
       BadRequest("Pas de ville sélectionné")
     } { city =>
       Ok(views.html.login(agentService.all(city), city))
+    }
+  }
+
+  case class CommentData(comment: String)
+  val commentForm = Form(
+    mapping(
+      "comment" -> text
+    )(CommentData.apply)(CommentData.unapply)
+  )
+
+  def addComment(applicationId: String) = loginAction { implicit request =>
+    (reviewForm.bindFromRequest.value, applicationById(applicationId, request.currentCity)) match {
+      case (Some(commentData), Some((application, reviews))) =>
+        val agent = request.currentAgent
+        val comment = Comment(UUID.randomUUID, applicationId, agent.id, request.currentCity, DateTime.now(), commentData.comment)
+        commentService.insert(comment) // Erreur non géré
+        Redirect(routes.ApplicationController.show(applicationId)).flashing("success" -> "Votre commentaire a bien été pris en compte.")
+      case _ =>
+        BadRequest("Error pour l'ajout du commentaire: la demande n'existe pas ou le contenu du formulaire est incorrect")
     }
   }
 
@@ -136,7 +162,7 @@ class ApplicationController @Inject() (ws: WSClient,
           Redirect(routes.ApplicationController.my()).flashing("success" -> "Votre avis a bien été pris en compte.")
         }
       case _ =>
-        Future.successful(BadRequest(""))
+        Future.successful(BadRequest("Error pour l'ajout de l'avis: la demande n'existe pas ou le contenu du formulaire est incorrect"))
     }
   }
 

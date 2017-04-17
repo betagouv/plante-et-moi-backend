@@ -3,14 +3,10 @@ package models
 import org.joda.time.DateTime
 import javax.inject.Inject
 
-import anorm.SqlParser._
+
 import anorm._
 import play.api.db.DBApi
-import anorm.{Macro, RowParser}
 import anorm.JodaParameterMetaData._
-
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
 
 case class Review(applicationId: String, agentId: String, creationDate: DateTime, favorable: Boolean, comment: String)
 
