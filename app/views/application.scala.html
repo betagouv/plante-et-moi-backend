@@ -84,7 +84,7 @@
     </tr>
     }
     @application.notImageFiles().map { file =>
-    <tr>
+    <tr class="do-not-print">
         <td class="mdl-data-table__cell--non-numeric application__key">Fichier</td>
         <td class="mdl-data-table__cell--non-numeric application__value"><a href='@routes.ApplicationController.getImage(file)'>@file.split('/').last</a></td>
     </tr>
