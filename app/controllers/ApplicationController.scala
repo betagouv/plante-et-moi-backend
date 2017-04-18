@@ -1,5 +1,6 @@
 package controllers
 
+import java.nio.file.Files
 import javax.inject._
 
 import play.api.mvc._
@@ -14,7 +15,7 @@ import actions.{LoginAction, RequestWithAgent}
 
 import scala.concurrent.Future
 import play.api.libs.mailer._
-import services.{ApplicationService, CommentService, TypeformService}
+import services.{ApplicationService, CommentService, FileService, TypeformService}
 import utils.{Hash, UUID}
 
 @Singleton
@@ -26,6 +27,7 @@ class ApplicationController @Inject() (ws: WSClient,
                                        loginAction: LoginAction,
                                        applicationService: ApplicationService,
                                        commentService: CommentService,
+                                       fileService: FileService,
                                        typeformService: TypeformService) extends Controller {
 
   def projects(city: String) = applicationService.findByCity(city).map { application =>
@@ -33,6 +35,28 @@ class ApplicationController @Inject() (ws: WSClient,
     }
 
   def getImage(url: String) = loginAction.async { implicit request =>
+    if(url.contains("typeform"))
+      getImageFromTypeform(url)
+    else if(url.startsWith("internal://"))
+      Future(getImageInternal(url))
+    else
+      Future(NotFound("Fichier inconnu"))
+  }
+
+  private def getImageInternal(url: String): Result = {
+    var id = url.split('/').lift(2)
+    id.flatMap(fileService.findById) match {
+      case Some(file) if !file.data.isEmpty =>
+        val contentType = file._type.getOrElse("text/plain")
+        val filename = file.name
+        Ok(file.data.get).withHeaders("Content-Disposition" -> s"attachment; filename=$filename").as(contentType)
+      case _ =>
+        NotFound("Fichier inconnu en interne")
+    }
+  }
+
+
+  private def getImageFromTypeform(url: String): Future[Result] = {
     var request = ws.url(url.replaceFirst(":443", ""))
     if(url.contains("api.typeform.com")) {
       request = request.withQueryString("key" -> typeformService.key)
@@ -118,8 +142,7 @@ class ApplicationController @Inject() (ws: WSClient,
   def addComment(applicationId: String) = loginAction { implicit request =>
     (reviewForm.bindFromRequest.value, applicationById(applicationId, request.currentCity)) match {
       case (Some(commentData), Some((application, reviews))) =>
-        val agent = request.currentAgent
-        val comment = Comment(UUID.randomUUID, applicationId, agent.id, request.currentCity, DateTime.now(), commentData.comment)
+        val comment = Comment(UUID.randomUUID, applicationId, request.currentAgent.id, request.currentCity, DateTime.now(), commentData.comment)
         commentService.insert(comment) // Erreur non géré
         Redirect(routes.ApplicationController.show(applicationId)).flashing("success" -> "Votre commentaire a bien été pris en compte.")
       case _ =>
@@ -163,6 +186,19 @@ class ApplicationController @Inject() (ws: WSClient,
         }
       case _ =>
         Future.successful(BadRequest("Error pour l'ajout de l'avis: la demande n'existe pas ou le contenu du formulaire est incorrect"))
+    }
+  }
+
+  def addFile(applicationId: String) = loginAction { request =>
+    (request.body.asMultipartFormData.get.file("file"), applicationById(applicationId, request.currentCity)) match {
+      case (Some(uploadedFile), Some((application, reviews))) =>
+        val filename = uploadedFile.filename
+        val contentType = uploadedFile.contentType
+        val file = File(UUID.randomUUID, applicationId, Some(request.currentAgent.id), request.currentCity, DateTime.now(), filename, contentType, Some(Files.readAllBytes(uploadedFile.ref.file.toPath)))
+        fileService.insert(file)
+        Redirect(routes.ApplicationController.show(applicationId)).flashing("success" -> "Votre fichier a bien été pris en compte.")
+      case _ =>
+        BadRequest("Error pour l'ajout du fichier: la demande n'existe pas ou le contenu du formulaire est incorrect")
     }
   }
 
