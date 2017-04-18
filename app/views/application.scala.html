@@ -125,7 +125,7 @@ div hr:last-child {
     </div>
 }
 @if(agent.instructor) {
-<div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
+<div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--6-col mdl-cell--12-col-phone mdl-grid do-not-print">
     <form action="@routes.ApplicationController.addComment(application.id)" class="mdl-grid mdl-cell mdl-cell--12-col" method="post">
         <h4 class="mdl-cell mdl-cell--12-col">Ajouter un commentaire pour l'instruction</h4>
         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell mdl-cell--12-col">
@@ -137,7 +137,7 @@ div hr:last-child {
         </button>
     </form>
 </div>
-<div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
+<div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--6-col mdl-cell--12-col-phone mdl-grid do-not-print">
     <form action="@routes.ApplicationController.addFile(application.id)" enctype="multipart/form-data" class="mdl-grid mdl-cell mdl-cell--12-col" method="post">
         <h4 class="mdl-cell mdl-cell--12-col">Ajouter un fichier pour l'instruction (maximum 5mo)</h4>
         <input class="mdl-cell mdl-cell--12-col" name="file" type="file">
