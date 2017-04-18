@@ -15,7 +15,8 @@ POST    /toutes-les-demandes/:applicationId/comments     controllers.Application
 POST    /toutes-les-demandes/:applicationId/file         controllers.ApplicationController.addFile(applicationId: String)
 GET     /image                                          controllers.ApplicationController.getImage(url: String)
 POST     /toutes-les-demandes/:id                       controllers.ApplicationController.updateStatus(id: String, status: String)
-GET     /login                                          controllers.ApplicationController.login()
+GET     /login                                          controllers.ApplicationController.getLogin()
+POST    /login                                          controllers.ApplicationController.postLogin()
 GET     /disconnect                                     controllers.ApplicationController.disconnectAgent()
 GET     /agents                                         controllers.AgentController.all
 GET     /settings                                       controllers.SettingController.all

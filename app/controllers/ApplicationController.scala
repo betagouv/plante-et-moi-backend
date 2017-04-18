@@ -117,19 +117,51 @@ class ApplicationController @Inject() (ws: WSClient,
 
 
   def changeCity(newCity: String) = Action { implicit request =>
-    Redirect(routes.ApplicationController.login()).withSession("city" -> newCity.toLowerCase)
+    Redirect(routes.ApplicationController.getLogin()).withSession("city" -> newCity.toLowerCase)
   }
 
   def disconnectAgent() = Action { implicit request =>
-    Redirect(routes.ApplicationController.login()).withSession(request.session - "agentId")
+    Redirect(routes.ApplicationController.getLogin()).withSession(request.session - "agentId")
   }
 
-  def login() = Action { implicit request =>
+  def getLogin() = Action { implicit request =>
     request.session.get("city").map(_.toLowerCase()).fold {
-      BadRequest("Pas de ville sélectionné")
+      BadRequest("Pas de ville sélectionné, contactez un administrateur")
     } { city =>
-      Ok(views.html.login(agentService.all(city), city))
+      Ok(views.html.login(city, Left(agentService.all(city))))
     }
+  }
+
+  def postLogin() = Action { implicit request =>
+    request.session.get("city").map(_.toLowerCase()).fold {
+      BadRequest("Pas de ville sélectionné, contactez un administrateur")
+    } { city =>
+      val agents = agentService.all(city)
+      request.body.asFormUrlEncoded.get.get("id").flatMap(_.headOption).flatMap(id => agents.find(_.id == id)).fold {
+        Redirect(routes.ApplicationController.getLogin()).flashing("error" -> "Agent manquant ou inconnu")
+      } { agent =>
+        sendLoginEmailToAgent(request, city, agent)
+        Ok(views.html.login(city, Right(agent)))
+      }
+    }
+  }
+
+  private def sendLoginEmailToAgent(request: Request[AnyContent], city: String, agent: Agent) = {
+    val url = s"${routes.ApplicationController.my().absoluteURL()(request)}?city=$city&key=${agent.key}"
+    val email = Email(
+      s"Connexion à Plante Et Moi",
+      "Plante et Moi <administration@plante-et-moi.fr>",
+      Seq(s"${agent.name} <${agent.email}>"),
+      bodyText = Some(s"""Bonjour ${agent.name},
+                         |
+                         |Vous pouvez voir les demandes de végétalisation ouvre l'adresse suivante :
+                         |${url}
+                         |
+                         |Merci de votre aide,
+                         |Si vous avez des questions, n'hésitez pas à nous contacter en répondant à ce mail
+                         |Equipe Plante Et Moi""".stripMargin)
+    )
+    mailerClient.send(email)
   }
 
   case class CommentData(comment: String)
