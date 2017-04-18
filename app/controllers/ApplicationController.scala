@@ -191,7 +191,7 @@ class ApplicationController @Inject() (ws: WSClient,
 
   def addFile(applicationId: String) = loginAction { request =>
     (request.body.asMultipartFormData.get.file("file"), applicationById(applicationId, request.currentCity)) match {
-      case (Some(uploadedFile), Some((application, reviews))) =>
+      case (Some(uploadedFile), Some((application, reviews))) if !uploadedFile.filename.isEmpty =>
         val filename = uploadedFile.filename
         val contentType = uploadedFile.contentType
         val file = File(UUID.randomUUID, applicationId, Some(request.currentAgent.id), request.currentCity, DateTime.now(), filename, contentType, Some(Files.readAllBytes(uploadedFile.ref.file.toPath)))
