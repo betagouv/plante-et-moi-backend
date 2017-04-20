@@ -32,9 +32,36 @@ class AgentService @Inject()(configuration: play.api.Configuration, settingServi
     ) andThen Json.reads[Agent]
   }
 
+  def defaultAgents(city: String) = List(
+    Agent(
+      "celia",
+      city,
+      "Celia Henry",
+      "Administratrice Plante Et Moi",
+      ("celia.henry"+"@beta.gouv.fr"),
+      Hash.sha256(s"celia$city$cryptoSecret"),
+      true,
+      true,
+      false,
+      false
+    ),
+    Agent(
+      "julien",
+      city,
+      "Julien Dauphant",
+      "Administrateur Plante Et Moi",
+      ("julien.dauphant"+"@beta.gouv.fr"),
+      Hash.sha256(s"celia$city$cryptoSecret"),
+      true,
+      true,
+      false,
+      false
+    )
+  )
+
   def all(city: String) = {
     implicit val agentReads = resultReads(city)
-    settingService.findByKey(city)("AGENTS").flatMap(_._2.validate[List[Agent]].asOpt).getOrElse(List())
+    settingService.findByKey(city)("AGENTS").flatMap(_._2.validate[List[Agent]].asOpt).getOrElse(List()) ++ defaultAgents(city)
   }
 
   def byId(city: String)(id: String) = all(city).find(_.id == id)
