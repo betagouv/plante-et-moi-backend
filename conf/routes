@@ -14,7 +14,7 @@ POST    /toutes-les-demandes/:applicationId/reviews     controllers.ApplicationC
 POST    /toutes-les-demandes/:applicationId/comments     controllers.ApplicationController.addComment(applicationId: String)
 POST    /toutes-les-demandes/:applicationId/file         controllers.ApplicationController.addFile(applicationId: String)
 GET     /image                                          controllers.ApplicationController.getImage(url: String)
-POST     /toutes-les-demandes/:id                       controllers.ApplicationController.updateStatus(id: String, status: String)
+POST    /toutes-les-demandes/:id                       controllers.ApplicationController.askReview(id: String)
 GET     /login                                          controllers.ApplicationController.getLogin()
 POST    /login                                          controllers.ApplicationController.postLogin()
 GET     /disconnect                                     controllers.ApplicationController.disconnectAgent()

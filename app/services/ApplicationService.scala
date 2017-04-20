@@ -17,8 +17,8 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
   @inline private def className(that: Any): String =
     if (that == null) "<null>" else that.getClass.getName
 
-  implicit val coordinatesParser: RowParser[Coordinates] = Macro.namedParser[Coordinates]
-  implicit val fieldsMapParser: anorm.Column[Map[String,String]] =
+  private implicit val coordinatesParser: RowParser[Coordinates] = Macro.namedParser[Coordinates]
+  private implicit val fieldsMapParser: anorm.Column[Map[String,String]] =
     nonNull { (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
@@ -29,21 +29,23 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
         case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${className(value)} to Map[String,String] for column $qualified"))
       }
     }
-  implicit val fieldsListParser: anorm.Column[List[String]] =
+  private implicit val fieldsListParser: anorm.Column[List[String]] =
     nonNull { (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
+        case array: org.postgresql.jdbc.PgArray=>
+          Right(array.getArray.asInstanceOf[Array[String]].toList)
         case json: org.postgresql.util.PGobject =>
           Right(Json.parse(json.getValue).as[List[String]])
         case json: String =>
           Right(Json.parse(json).as[List[String]])
-        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${className(value)} to Map[String,String] for column $qualified"))
+        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${className(value)} to List[String] for column $qualified"))
       }
     }
 
 
-  val simple: RowParser[Application] = Macro.parser[Application](
-    "id", "city", "status", "applicant_firstname", "applicant_lastname", "applicant_email", "applicant_address", "type", "address", "creation_date", "coordinates", "source", "source_id", "applicant_phone", "fields", "application_imported.files", "application_extra.files"
+  private val simple: RowParser[Application] = Macro.parser[Application](
+    "id", "city", "status", "applicant_firstname", "applicant_lastname", "applicant_email", "applicant_address", "type", "address", "creation_date", "coordinates", "source", "source_id", "applicant_phone", "fields", "application_imported.files", "application_extra.files", "reviewer_agent_ids"
   )
 
   def findByApplicationId(applicationId: String) = db.withConnection { implicit connection =>
@@ -90,11 +92,12 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
     SQL("SELECT * FROM application_imported INNER JOIN application_extra ON (application_imported.id = application_extra.application_id) WHERE city = {city} ORDER BY creation_date DESC").on('city -> city).as(simple.*)
   }
 
-  def updateStatus(id: String, newStatus: String) = db.withConnection { implicit connection =>
-    SQL("UPDATE application_extra SET status = {status} WHERE application_id = {application_id}"
+  def update(application: Application) = db.withConnection { implicit connection =>
+    SQL("UPDATE application_extra SET status = {status}, reviewer_agent_ids = {reviewer_agent_ids} WHERE application_id = {application_id}"
     ).on(
-      'application_id -> id,
-      'status -> newStatus
+      'application_id -> application.id,
+      'status -> application.status,
+      'reviewer_agent_ids -> application.reviewerAgentIds.toArray
     ).executeUpdate()
   }
 }

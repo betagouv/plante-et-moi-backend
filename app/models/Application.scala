@@ -18,7 +18,8 @@ case class Application(id: String,
                        applicantPhone: Option[String] = None,
                        fields: Map[String, String] = Map(),
                        originalFiles: List[String] = List(),
-                       newFiles: List[String] = List()) {
+                       newFiles: List[String] = List(),
+                       reviewerAgentIds: List[String] = List()) {
 
    val applicantName = s"${applicantFirstname.capitalize} ${applicantLastname.capitalize}"
    private def imageFilter(fileName: String) = List("jpg","jpeg","png").exists(fileName.toLowerCase().endsWith(_))

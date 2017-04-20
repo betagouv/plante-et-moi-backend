@@ -19,7 +19,7 @@
             <th class="mdl-data-table__cell--non-numeric">Admin</th>
             <th class="mdl-data-table__cell--non-numeric">Instructeur</th>
             <th class="mdl-data-table__cell--non-numeric">Avis</th>
-            <th class="mdl-data-table__cell--non-numeric">Avis final</th>
+            <th class="mdl-data-table__cell--non-numeric">Décisionnel</th>
         </tr>
         </thead>
         <tbody>
@@ -44,8 +44,8 @@
                 </label>
             </td>
             <td class="">
-                <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-@agent.id">
-                    <input type="radio" id="option-@agent.id" class="mdl-radio__button" name="options" value="@agent.id" @if(agent.finalReview){ checked } disabled>
+                <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect">
+                    <input type="checkbox" class="mdl-checkbox__input" @if(agent.finalReview){ checked } disabled>
                 </label>
             </td>
         </tr>

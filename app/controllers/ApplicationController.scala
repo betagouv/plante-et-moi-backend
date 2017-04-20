@@ -108,7 +108,7 @@ class ApplicationController @Inject() (ws: WSClient,
                 .map { comment =>
                   comment -> agents.find(_.id == comment.agentId).get
                 }
-          Ok(views.html.application(application._1, agent, reviews, comments))
+          Ok(views.html.application(application._1, agent, reviews, comments, agents))
     }
   }
 
@@ -148,7 +148,7 @@ class ApplicationController @Inject() (ws: WSClient,
 
   private def sendLoginEmailToAgent(request: Request[AnyContent], city: String, agent: Agent) = {
     val url = s"${routes.ApplicationController.my().absoluteURL()(request)}?city=$city&key=${agent.key}"
-    val email = Email(
+    val email = play.api.libs.mailer.Email(
       s"Connexion à Plante Et Moi",
       "Plante et Moi <administration@plante-et-moi.fr>",
       Seq(s"${agent.name} <${agent.email}>"),
@@ -201,10 +201,11 @@ class ApplicationController @Inject() (ws: WSClient,
               case true => "Favorable"
               case false => "Défavorable"
             }
-            applicationService.updateStatus(applicationId, status)
+            val newApplication = application.copy(status = status)
+            applicationService.update(newApplication)
             agentService.all(request.currentCity).filter { _.instructor }.foreach(sendCompletedApplicationEmailToAgent(application, request, agent))
           } else {
-            val numberOrReviewNeededBeforeFinal = agentService.all(request.currentCity).count { agent => agent.canReview && !agent.finalReview }
+            val numberOrReviewNeededBeforeFinal = application.reviewerAgentIds.length
             val bonus = reviews.exists(_.agentId == agent.id) match {
               case true => 0
               case false => 1
@@ -234,18 +235,27 @@ class ApplicationController @Inject() (ws: WSClient,
     }
   }
 
-  def updateStatus(id: String, status: String) = loginAction { implicit request =>
-    applicationById(id, request.currentCity) match {
-      case None =>
-        NotFound("")
-      case Some((application, _)) =>
-        var message = "Le status de la demande a été mis à jour"
-        if(status == "En cours" && application.status != "En cours") {
-          agentService.all(request.currentCity).filter { agent => agent.canReview && !agent.finalReview }.foreach(sendNewApplicationEmailToAgent(application, request))
-          message = "Le status de la demande a été mis à jour, un mail a été envoyé aux agents pour obtenir leurs avis."
-        }
-        applicationService.updateStatus(application.id, status)
-        Redirect(routes.ApplicationController.all()).flashing("success" -> message)
+
+  case class AskReviewData(agentIds: List[String])
+  val askReviewForm = Form(
+    mapping(
+      "agents" -> list(text)
+    )(AskReviewData.apply)(AskReviewData.unapply)
+  )
+
+  def askReview(applicationId: String) = loginAction { implicit request =>
+    (askReviewForm.bindFromRequest.value, applicationById(applicationId, request.currentCity)) match {
+      case (Some(askReviewData), Some((application, _))) =>
+
+        val selectedAgents = agentService.all(request.currentCity).filter { agent => askReviewData.agentIds.contains(agent.id) }
+        selectedAgents.foreach(sendNewApplicationEmailToAgent(application, request))
+
+        val newApplication = application.copy(status = "En cours", reviewerAgentIds = selectedAgents.map(_.id))
+        applicationService.update(newApplication)
+
+        Redirect(routes.ApplicationController.all()).flashing("success" -> "Le status de la demande a été mis à jour, un mail a été envoyé aux agents pour obtenir leurs avis.")
+      case _ =>
+        NotFound("Formulaire incorrect ou application incorrect")
     }
   }
 
@@ -255,7 +265,7 @@ class ApplicationController @Inject() (ws: WSClient,
       case true => s"Demande d'avis final permis de végétalisation : ${application.address}"
       case false => s"Demande d'avis permis de végétalisation : ${application.address}"
     }
-    val email = Email(
+    val email = play.api.libs.mailer.Email(
       title,
       "Plante et Moi <administration@plante-et-moi.fr>",
       Seq(s"${agent.name} <${agent.email}>"),
@@ -274,7 +284,7 @@ class ApplicationController @Inject() (ws: WSClient,
 
   private def sendCompletedApplicationEmailToAgent(application: models.Application, request: RequestWithAgent[AnyContent], finalAgent: Agent)(agent: Agent) = {
     val url = s"${routes.ApplicationController.show(application.id).absoluteURL()(request)}?city=${request.currentCity}&key=${agent.key}"
-    val email = Email(
+    val email = play.api.libs.mailer.Email(
       s"Avis final donné demande de végétalisation : ${application.address}",
       "Plante et Moi <administration@plante-et-moi.fr>",
       Seq(s"${agent.name} <${agent.email}>"),
