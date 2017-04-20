@@ -7,14 +7,36 @@ import akka.actor.ActorSystem
 import controllers.routes
 import models._
 import play.api.Logger
-import play.api.libs.mailer.{Email, MailerClient}
+import play.api.libs.mailer.MailerClient
+import models.Email
+import org.joda.time.DateTime
+import utils.UUID
 
 @Singleton
-class NotificationsService @Inject()(system: ActorSystem, configuration: play.api.Configuration, mailerClient: MailerClient, emailTemplateService: EmailTemplateService, agentService: AgentService, settingService: SettingService) {
+class NotificationsService @Inject()(system: ActorSystem,
+                                     configuration: play.api.Configuration,
+                                     mailerClient: MailerClient,
+                                     emailTemplateService: EmailTemplateService,
+                                     agentService: AgentService,
+                                     settingService: SettingService,
+                                     emailSentService: EmailSentService) {
 
 
     private val host = configuration.underlying.getString("app.host")
     private val https = configuration.underlying.getString("app.https") == "true"
+
+    private def sendMail(email: Email) {
+      val playEmail = play.api.libs.mailer.Email(
+       email.subject,
+       email.sentFrom,
+       email.sentTo,
+       bodyText = Some(email.bodyText),
+       replyTo = email.replyTo
+      )
+      mailerClient.send(playEmail)
+      Logger.info(s"Email sent to ${email.sentTo.mkString(", ")}")
+      emailSentService.insert(email)
+    }
 
     def newApplication(application: Application): Boolean = {
       emailTemplateService.get(application.city, "RECEPTION_EMAIL").fold {
@@ -25,13 +47,9 @@ class NotificationsService @Inject()(system: ActorSystem, configuration: play.ap
         val agents = agentService.all(application.city).filter(_.instructor)
         val instructorEmails = agents.map(generateInstructorEmail(applicantEmail, application))
 
-        Logger.info(s"Send mail to Applicant ${application.applicantEmail}")
-        mailerClient.send(applicantEmail)
+        sendMail(applicantEmail)
 
-        instructorEmails.foreach { instructorEmail =>
-          Logger.info(s"Send mail to Instructor ${instructorEmail.to}")
-          mailerClient.send(instructorEmail)
-        }
+        instructorEmails.foreach(sendMail)
         return true
       }
     }
@@ -50,19 +68,26 @@ class NotificationsService @Inject()(system: ActorSystem, configuration: play.ap
           |Voici le message reçu par le demandeur:
           |========
           |Sujet: ${emailApplicant.subject}
-          |De: ${emailApplicant.from}
-          |À: ${emailApplicant.to.mkString(", ")}
+          |De: ${emailApplicant.sentFrom}
+          |À: ${emailApplicant.sentTo.mkString(", ")}
           |
-          |> ${emailApplicant.bodyText.get.replaceAll("\n", "\n> ")}
+          |> ${emailApplicant.bodyText.replaceAll("\n", "\n> ")}
           |========
           |
           |Plante Et Moi""".stripMargin
 
-       Email(s"Nouvelle demande de végétalisation: ${application._type}, ${application.address}",
-         "Plante Et moi <administration@plante-et-moi.fr>",
-         List(s"${agent.name} <${agent.email}>"),
-         bodyText = Some(body)
-       )
+      Email(
+        UUID.randomUUID,
+        application.id,
+        Some(agent.id),
+        application.city,
+        DateTime.now(),
+        "NEW_APPLICATION_INSTRUCTOR",
+        s"Nouvelle demande de végétalisation: ${application._type}, ${application.address}",
+        "Plante Et moi <administration@plante-et-moi.fr>",
+        Array(s"${agent.name} <${agent.email}>"),
+        bodyText = body
+      )
     }
 
     private def generateApplicantEmail(emailTemplate: EmailTemplate)(application: models.Application): Email = {
@@ -96,10 +121,16 @@ class NotificationsService @Inject()(system: ActorSystem, configuration: play.ap
         .replaceAll("<application>", applicationString)
 
       Email(
+        UUID.randomUUID,
+        application.id,
+        None,
+        application.city,
+        DateTime.now(),
+        "NEW_APPLICATION_APPLICANT",
         emailTemplate.title,
         emailTemplate.from,
-        Seq(s"${application.applicantName} <${application.applicantEmail}>"),
-        bodyText = Some(body),
+        Array(s"${application.applicantName} <${application.applicantEmail}>"),
+        bodyText = body,
         replyTo = emailTemplate.replyTo
       )
     }
