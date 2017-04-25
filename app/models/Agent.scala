@@ -51,7 +51,7 @@ class AgentService @Inject()(configuration: play.api.Configuration, settingServi
       "Julien Dauphant",
       "Administrateur Plante Et Moi",
       ("julien.dauphant"+"@beta.gouv.fr"),
-      Hash.sha256(s"celia$city$cryptoSecret"),
+      Hash.sha256(s"julien$city$cryptoSecret"),
       true,
       true,
       false,
