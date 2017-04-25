@@ -295,12 +295,12 @@ class ApplicationController @Inject() (ws: WSClient,
   private def sendCompletedApplicationEmailToAgent(application: models.Application, request: RequestWithAgent[AnyContent], finalAgent: Agent)(agent: Agent) = {
     val url = s"${routes.ApplicationController.show(application.id).absoluteURL()(request)}?city=${request.currentCity}&key=${agent.key}"
     val email = play.api.libs.mailer.Email(
-      s"Avis final donné demande de végétalisation : ${application.address}",
+      s"Décision pour demande de végétalisation au ${application.address}",
       "Plante et Moi <administration@plante-et-moi.fr>",
       Seq(s"${agent.name} <${agent.email}>"),
       bodyText = Some(s"""Bonjour ${agent.name},
                          |
-                         |L'avis final a été donné par ${finalAgent.name} pour la demande de végétalisation au ${application.address} (c'est un projet de ${application._type}).
+                         |Le décision a été pris par ${finalAgent.name} pour la demande de végétalisation au ${application.address} (c'est un projet de ${application._type}).
                          |Vous pouvez voir la demande ici :
                          |${url}
                          |
