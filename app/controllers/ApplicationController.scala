@@ -196,24 +196,10 @@ class ApplicationController @Inject() (ws: WSClient,
         val agent = request.currentAgent
         val review = Review(applicationId, agent.id, DateTime.now(), reviewData.favorable, reviewData.comment)
         Future(reviewService.insertOrUpdate(review)).map { _ =>
-          if(agent.finalReview) {
-            val status = review.favorable match {
-              case true => "Favorable"
-              case false => "Défavorable"
-            }
-            val newApplication = application.copy(status = status)
-            applicationService.update(newApplication)
-            agentService.all(request.currentCity).filter { _.instructor }.foreach(sendCompletedApplicationEmailToAgent(application, request, agent))
-          } else {
-            val numberOrReviewNeededBeforeFinal = application.reviewerAgentIds.length
-            val bonus = reviews.exists(_.agentId == agent.id) match {
-              case true => 0
-              case false => 1
-            }
-            val numberOfReview = reviews.length + bonus
-            if(numberOrReviewNeededBeforeFinal == numberOfReview) {
-              agentService.all(request.currentCity).filter { agent => agent.finalReview }.foreach(sendNewApplicationEmailToAgent(application, request))
-            }
+          val numberOrReviewNeededBeforeFinal = application.reviewerAgentIds.length
+          val numberOfReview = reviews.length
+          if(!reviews.exists(_.agentId == agent.id) && numberOrReviewNeededBeforeFinal == numberOfReview) {
+            agentService.all(request.currentCity).filter { agent => agent.finalReview }.foreach(sendNewApplicationEmailToAgent(application, request))
           }
           Redirect(routes.ApplicationController.my()).flashing("success" -> "Votre avis a bien été pris en compte.")
         }
@@ -221,6 +207,30 @@ class ApplicationController @Inject() (ws: WSClient,
         Future.successful(BadRequest("Error pour l'ajout de l'avis: la demande n'existe pas ou le contenu du formulaire est incorrect"))
     }
   }
+
+  def takeDecision(applicationId: String) = loginAction { implicit request =>
+    if(!request.currentAgent.finalReview) {
+      Unauthorized("Vous n'avez pas le droit de prendre un décision")
+    } else {
+      (reviewForm.bindFromRequest.value, applicationById(applicationId, request.currentCity)) match {
+        case (Some(reviewData), Some((application, reviews))) =>
+          val agent = request.currentAgent
+          val status = reviewData.favorable match {
+            case true => "Favorable"
+            case false => "Défavorable"
+          }
+          val newApplication = application.copy(status = status)
+          applicationService.update(newApplication)
+          agentService.all(request.currentCity).filter {
+            _.instructor
+          }.foreach(sendCompletedApplicationEmailToAgent(application, request, agent))
+          Redirect(routes.ApplicationController.my()).flashing("success" -> "Votre avis a bien été pris en compte.")
+        case _ =>
+          BadRequest("Error pour la prise de décision, la demande n'existe pas ou le contenu du formulaire est incorrect")
+      }
+    }
+  }
+
 
   def addFile(applicationId: String) = loginAction { request =>
     (request.body.asMultipartFormData.get.file("file"), applicationById(applicationId, request.currentCity)) match {
