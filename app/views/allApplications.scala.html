@@ -27,7 +27,7 @@
                 <td class="mdl-data-table__cell--non-numeric">@application.address</td>
                 <td class="mdl-data-table__cell--non-numeric">@application.applicantName</td>
                 <td class="mdl-data-table__cell--non-numeric">@application.creationDate.toString("dd MMM YYYY", new Locale("fr"))</td>
-                <td class="mdl-data-table__cell--non-numeric">@application.status</td>
+                <td class="mdl-data-table__cell--non-numeric" style="@if(application.status == "Défavorable"){ color: red } else { @if(application.status == "Favorable") { color: green }}">@application.status</td>
                 <td class="mdl-data-table__cell--non-numeric" style="white-space: nowrap;">@reviews.length / @application.reviewerAgentIds.length</td>
                 <td class="mdl-data-table__cell--non-numeric">@application._type</td>
             </tr>
