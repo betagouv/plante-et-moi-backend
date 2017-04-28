@@ -148,18 +148,21 @@ class ApplicationController @Inject() (ws: WSClient,
 
   private def sendLoginEmailToAgent(request: Request[AnyContent], city: String, agent: Agent) = {
     val url = s"${routes.ApplicationController.my().absoluteURL()(request)}?city=$city&key=${agent.key}"
+    val bodyHtml = s"""Bonjour ${agent.name},<br>
+                      |<br>
+                      |Vous pouvez voir les demandes de végétalisation en ouvrant l'adresse suivante :<br>
+                      |<a href="${url}">${url}</a><br>
+                      |<br>
+                      |Merci de votre aide,<br>
+                      |Si vous avez des questions, n'hésitez pas à nous contacter en répondant à ce mail<br>
+                      |Equipe Plante Et Moi""".stripMargin
+    val bodyText = bodyHtml.replaceAll("<[^>]*>", "")
     val email = play.api.libs.mailer.Email(
       s"Connexion à Plante Et Moi",
       "Plante et Moi <administration@plante-et-moi.fr>",
       Seq(s"${agent.name} <${agent.email}>"),
-      bodyText = Some(s"""Bonjour ${agent.name},
-                         |
-                         |Vous pouvez voir les demandes de végétalisation ouvre l'adresse suivante :
-                         |${url}
-                         |
-                         |Merci de votre aide,
-                         |Si vous avez des questions, n'hésitez pas à nous contacter en répondant à ce mail
-                         |Equipe Plante Et Moi""".stripMargin)
+      bodyHtml = Some(bodyHtml),
+      bodyText = Some(bodyText)
     )
     mailerClient.send(email)
   }
