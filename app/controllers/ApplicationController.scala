@@ -74,8 +74,8 @@ class ApplicationController @Inject() (ws: WSClient,
 
   def all = loginAction { implicit request =>
     val responses = projects(request.currentCity)
-    val numberOrReviewNeeded = agentService.all(request.currentCity).count(_.canReview)
-    Ok(views.html.allApplications(responses, request.currentAgent, numberOrReviewNeeded))
+    val agents = agentService.all(request.currentCity)
+    Ok(views.html.allApplications(responses, request.currentAgent, agents))
   }
 
   def map = loginAction { implicit request =>
@@ -194,12 +194,13 @@ class ApplicationController @Inject() (ws: WSClient,
     (reviewForm.bindFromRequest.value, applicationById(applicationId, request.currentCity)) match {
       case (Some(reviewData), Some((application, reviews))) =>
         val agent = request.currentAgent
+        val agents = agentService.all(request.currentCity)
         val review = Review(applicationId, agent.id, DateTime.now(), reviewData.favorable, reviewData.comment)
         Future(reviewService.insertOrUpdate(review)).map { _ =>
-          val numberOrReviewNeededBeforeFinal = application.reviewerAgentIds.length
+          val numberOrReviewNeededBeforeFinal = application.numberOfReviewNeeded(agents)
           val numberOfReview = reviews.length
           if(!reviews.exists(_.agentId == agent.id) && numberOrReviewNeededBeforeFinal == numberOfReview) {
-            agentService.all(request.currentCity).filter { agent => agent.finalReview }.foreach(sendNewApplicationEmailToAgent(application, request))
+            agentService.all(request.currentCity).filter { agent => agent.finalReview }.foreach(sendRequestDecisionEmailToAgent(application, request))
           }
           Redirect(routes.ApplicationController.my()).flashing("success" -> "Votre avis a bien été pris en compte.")
         }
@@ -258,7 +259,7 @@ class ApplicationController @Inject() (ws: WSClient,
       case (Some(askReviewData), Some((application, _))) =>
 
         val selectedAgents = agentService.all(request.currentCity).filter { agent => askReviewData.agentIds.contains(agent.id) }
-        selectedAgents.foreach(sendNewApplicationEmailToAgent(application, request))
+        selectedAgents.foreach(sendRequestReviewEmailToAgent(application, request))
 
         val newApplication = application.copy(status = "En cours", reviewerAgentIds = selectedAgents.map(_.id))
         applicationService.update(newApplication)
@@ -269,14 +270,10 @@ class ApplicationController @Inject() (ws: WSClient,
     }
   }
 
-  private def sendNewApplicationEmailToAgent(application: models.Application, request: RequestWithAgent[AnyContent])(agent: Agent) = {
+  private def sendRequestReviewEmailToAgent(application: models.Application, request: RequestWithAgent[AnyContent])(agent: Agent) = {
     val url = s"${routes.ApplicationController.show(application.id).absoluteURL()(request)}?city=${request.currentCity}&key=${agent.key}"
-    val title = agent.finalReview match {
-      case true => s"Demande d'avis final permis de végétalisation : ${application.address}"
-      case false => s"Demande d'avis permis de végétalisation : ${application.address}"
-    }
     val email = play.api.libs.mailer.Email(
-      title,
+      s"Demande d'avis permis de végétalisation : ${application.address}",
       "Plante et Moi <administration@plante-et-moi.fr>",
       Seq(s"${agent.name} <${agent.email}>"),
       bodyText = Some(s"""Bonjour ${agent.name},
@@ -288,6 +285,26 @@ class ApplicationController @Inject() (ws: WSClient,
                     |Merci de votre aide,
                     |Si vous avez des questions, n'hésitez pas à nous contacter en répondant à ce mail,
                     |Equipe Plante Et Moi""".stripMargin)
+    )
+    mailerClient.send(email)
+  }
+
+  private def sendRequestDecisionEmailToAgent(application: models.Application, request: RequestWithAgent[AnyContent])(agent: Agent) = {
+    val url = s"${routes.ApplicationController.show(application.id).absoluteURL()(request)}?city=${request.currentCity}&key=${agent.key}"
+
+    val email = play.api.libs.mailer.Email(
+      s"Demande de décision pour permis de végétalisation : ${application.address}",
+      "Plante et Moi <administration@plante-et-moi.fr>",
+      Seq(s"${agent.name} <${agent.email}>"),
+      bodyText = Some(s"""Bonjour ${agent.name},
+                         |
+                         |Nous avons besoin que vous preniez une décision pour une demande de végétalisation au ${application.address} (c'est un projet de ${application._type}).
+                         |Vous pouvez voir la demande et prendre la décision en ouvrant la page suivante :
+                         |${url}
+                         |
+                         |Merci de votre aide,
+                         |Si vous avez des questions, n'hésitez pas à nous contacter en répondant à ce mail,
+                         |Equipe Plante Et Moi""".stripMargin)
     )
     mailerClient.send(email)
   }

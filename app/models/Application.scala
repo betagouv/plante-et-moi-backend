@@ -27,4 +27,6 @@ case class Application(id: String,
    lazy val files = originalFiles ++ newFiles
    lazy val imagesFiles = files.filter(imageFilter)
    lazy val notImageFiles = files.filter(!imageFilter(_))
+
+   def numberOfReviewNeeded(agents: Traversable[Agent]) = reviewerAgentIds.flatMap(id => agents.filter(_.id == id)).groupBy(_.qualite).size
 }
