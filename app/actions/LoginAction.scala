@@ -14,7 +14,7 @@ class RequestWithAgent[A](val currentAgent: Agent, val currentCity: String, requ
 @Singleton
 class LoginAction @Inject()(agentService: AgentService) extends ActionBuilder[RequestWithAgent] with ActionRefiner[Request, RequestWithAgent] {
   private def getCity(request: RequestHeader) =
-    request.session.get("city").orElse(request.getQueryString("city")).getOrElse("arles").toLowerCase()
+    request.getQueryString("city").orElse(request.session.get("city")).getOrElse("arles").toLowerCase()
 
   private def queryToString(qs: Map[String, Seq[String]]) = {
     val queryString = qs.map { case (key, value) => key + "=" + value.sorted.mkString("|,|") }.mkString("&")
