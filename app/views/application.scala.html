@@ -152,7 +152,8 @@ div hr:last-child {
 @if(application.status == "Nouvelle") {
 <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
     @if(currentAgent.instructor) {
-    <form action='@routes.ApplicationController.askReview(application.id)' class="mdl-cell mdl-cell--10-col mdl-cell--1-offset-desktop mdl-grid do-not-print" method="post" onsubmit="disableButton('application-complete');">
+    <h3 class="mdl-cell mdl-cell--12-col">Demander l'avis des services</h3>
+    <form action='@routes.ApplicationController.askReview(application.id)' class="mdl-cell mdl-cell--10-col mdl-cell--1-offset-desktop mdl-grid do-not-print" method="post" onsubmit="disableButton('application-complete');disableButton('application-no-reviews');">
         <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp mdl-cell mdl-cell--10-col mdl-cell--1-offset mdl-cell--12-col--phone mdl-cell--0-offset--phone">
             <thead>
             <tr>
@@ -179,7 +180,11 @@ div hr:last-child {
         </table>
         <button id="application-complete" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-cell mdl-cell--10-col mdl-cell--1-offset mdl-cell--12-col--phone mdl-cell--0-offset--phone">Demander l'avis aux agents sélectionnés</button>
     </form>
+    <form action='@routes.ApplicationController.askReview(application.id)' class="mdl-cell mdl-cell--10-col mdl-cell--1-offset-desktop mdl-grid do-not-print" method="post" onsubmit="disableButton('application-complete');disableButton('application-no-reviews');">
+        <button id="application-no-reviews" class="mdl-button mdl-js-button mdl-button--raised mdl-cell mdl-cell--10-col mdl-cell--1-offset mdl-cell--12-col--phone mdl-cell--0-offset--phone">Ne pas demander d'avis pour prendre la décision</button>
+    </form>
     } else {
+        <h3 class="mdl-cell mdl-cell--12-col">Avis</h3>
         <p>Cette demande est attente de validation par un agent instructeur, vous ne pouvez pas intervenir dessus</p>
     }
 </div>
@@ -238,11 +243,12 @@ div hr:last-child {
     </form>
 </div>
 }
+@if(application.status != "Nouvelle") {
 <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid do-not-print">
     <form action="@routes.ApplicationController.takeDecision(application.id)" class="mdl-cell mdl-cell--12-col mdl-grid mdl-grid--no-spacing" method="post">
-        <h3 class="mdl-cell mdl-cell--12-col">Décision</h3>
-        @if(currentAgent.finalReview && (application.status == "En cours" || application.status == "Nouvelle")) {
-            <span style="color: red; padding: 5px;">Si la décision est favorable, elle déclenchera l'envoi du permis par un agent instructeur. La décision est définitive et empêchera le dépot de nouveau avis.</span>
+        @if(currentAgent.finalReview && application.status == "En cours") {
+            <h3 class="mdl-cell mdl-cell--12-col">Prendre la décision finale</h3>
+            <span style="color: red; padding: 5px;">Si la décision est favorable, un instructeur devra envoyer le permis. La décision est définitive et empêchera le dépot de nouveau avis.</span>
             <!--
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell mdl-cell--12-col">
                 <textarea class="mdl-textfield__input" type="text" rows= "5" id="sample5" style="width: 100%;" name="comment"></textarea>
@@ -259,6 +265,7 @@ div hr:last-child {
             </button>
             <div></div>
         } else {
+            <h3 class="mdl-cell mdl-cell--12-col">Décision</h3>
             <div class="mdl-cell mdl-cell--12-col mdl-grid">
                 @if(application.status == "Défavorable" || application.status == "Favorable") {
                     <h4 style="color: @if(application.status == "Défavorable"){ red } else { green }">@application.status</h4>
@@ -269,6 +276,7 @@ div hr:last-child {
         }
     </form>
 </div>
+}
 <script>
     var map = L.map('map', {
         zoom: 13,
