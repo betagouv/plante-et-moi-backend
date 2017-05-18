@@ -121,3 +121,6 @@ html, body {
         padding-left: 2px;
     }
 }
+.mdl-button--raised.mdl-button--colored {
+    color: white;
+}

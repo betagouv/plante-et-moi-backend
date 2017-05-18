@@ -4,7 +4,11 @@
 @(applications: List[(Application, List[Review])], agent: Agent)(implicit flash: Flash)
 
 @main(agent)("Mes demandes (en attente de votre avis)")  {
-
+<style>
+    td {
+        cursor: pointer;
+    }
+</style>
 }{
 <table class="mdl-data-table mdl-js-data-table mdl-cell mdl-cell--12-col mdl-shadow--2dp" style="white-space: normal;">
     <thead>
