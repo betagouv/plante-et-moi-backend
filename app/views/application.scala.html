@@ -245,7 +245,7 @@ div hr:last-child {
 }
 @if(application.status != "Nouvelle") {
 <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid do-not-print">
-    <form action="@routes.ApplicationController.takeDecision(application.id)" class="mdl-cell mdl-cell--12-col mdl-grid mdl-grid--no-spacing" method="post">
+    <form action="@routes.ApplicationController.takeDecision(application.id)" class="mdl-cell mdl-cell--12-col mdl-grid mdl-grid--no-spacing" method="post" onsubmit="onFormSubmit();">
         @if(currentAgent.finalReview && application.status == "En cours") {
             <h3 class="mdl-cell mdl-cell--12-col">Prendre la décision finale</h3>
             <span style="color: red; padding: 5px;">Si la décision est favorable, un instructeur devra envoyer le permis. La décision est définitive et empêchera le dépot de nouveau avis.</span>
@@ -256,11 +256,11 @@ div hr:last-child {
             </div>-->
             <input type="hidden" name="comment" value="">
             <div class="mdl-cell mdl-cell--12-col mdl-grid">
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-cell mdl-cell--6-col" type="submit" name="favorable" value="true">
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-cell mdl-cell--6-col" type="submit" name="favorable" value="true" onclick="return confirmDecision('Favorable');">
                 Favorable
             </button>
 
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-cell mdl-cell--6-col" type="submit" name="favorable" value="false">
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-cell mdl-cell--6-col" type="submit" name="favorable" value="false" onclick="return confirmDecision('Défavorable');">
                 Défavorable
             </button>
             <div></div>
@@ -355,5 +355,17 @@ div hr:last-child {
         }
     }
     window.onload = initImages;
+
+    function confirmDecision(decision) {
+        var ret = confirm("L'action suivante est définitive: êtes-vous sûr de prendre une décision "+decision+" ?");
+        return ret;
+    }
+
+    function onFormSubmit() {
+        Array.from(document.getElementsByName("favorable"))
+            .forEach(function(button){
+                 button.disabled = true;
+            });
+    }
 </script>
 }
