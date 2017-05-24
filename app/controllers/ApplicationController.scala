@@ -227,7 +227,7 @@ class ApplicationController @Inject() (ws: WSClient,
           applicationService.update(newApplication)
           agentService.all(request.currentCity).filter {
             _.instructor
-          }.foreach(sendCompletedApplicationEmailToAgent(application, request, agent))
+          }.foreach(sendCompletedApplicationEmailToAgent(application, request, agent, status))
           Redirect(routes.ApplicationController.my()).flashing("success" -> "Votre avis a bien été pris en compte.")
         case _ =>
           BadRequest("Error pour la prise de décision, la demande n'existe pas ou le contenu du formulaire est incorrect")
@@ -312,15 +312,15 @@ class ApplicationController @Inject() (ws: WSClient,
     mailerClient.send(email)
   }
 
-  private def sendCompletedApplicationEmailToAgent(application: models.Application, request: RequestWithAgent[AnyContent], finalAgent: Agent)(agent: Agent) = {
+  private def sendCompletedApplicationEmailToAgent(application: models.Application, request: RequestWithAgent[AnyContent], finalAgent: Agent, status: String)(agent: Agent) = {
     val url = s"${routes.ApplicationController.show(application.id).absoluteURL()(request)}?city=${request.currentCity}&key=${agent.key}"
     val email = play.api.libs.mailer.Email(
-      s"Décision pour demande de végétalisation au ${application.address}",
+      s"Décision $status pour demande de végétalisation au ${application.address}",
       "Plante et Moi <administration@plante-et-moi.fr>",
       Seq(s"${agent.name} <${agent.email}>"),
       bodyText = Some(s"""Bonjour ${agent.name},
                          |
-                         |Le décision a été pris par ${finalAgent.name} pour la demande de végétalisation au ${application.address} (c'est un projet de ${application._type}).
+                         |Une décision $status a été pris par ${finalAgent.name} pour la demande de végétalisation au ${application.address} (c'est un projet de ${application._type}).
                          |Vous pouvez voir la demande ici :
                          |${url}
                          |
