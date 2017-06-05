@@ -1,4 +1,4 @@
-@(application: models.Application, currentAgent: Agent, reviews: List[(Review, Agent)], comments: List[(Comment, Agent)], agents: List[Agent])(implicit flash: Flash)
+@(application: models.Application, currentAgent: Agent, reviews: List[(Review, Agent)], comments: List[(Comment, Agent)], agents: List[Agent])(implicit flash: Flash, webJarAssets: WebJarAssets)
 @import java.util.Locale
 
 @main(currentAgent)(s"${application.address} (${application._type}) / Statut: ${application.status}")  {

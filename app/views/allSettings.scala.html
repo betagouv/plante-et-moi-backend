@@ -1,5 +1,5 @@
 @import models._
-@(settings: Map[String, String], agent: Agent)(implicit flash: Flash)
+@(settings: Map[String, String], agent: Agent)(implicit flash: Flash, webJarAssets: WebJarAssets)
 @import java.util.Locale
 
 @main(agent)("Paramètres") {

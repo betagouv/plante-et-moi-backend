@@ -1,31 +1,84 @@
 @import models._
 @import java.util.Locale
 
-@(applications: List[(Application, List[Review])], agent: Agent)(implicit flash: Flash)
+@(applicationsToReview: List[(Application, List[Review])], newApplications: List[(Application, List[Review])], applicationsWithDecisionToTake: List[(Application, List[Review])], agent: Agent)(implicit flash: Flash, webJarAssets: WebJarAssets)
 
-@main(agent)("Mes demandes (en attente de votre avis)")  {
+@main(agent)("Mes actions à faire")  {
 <style>
     td {
         cursor: pointer;
     }
 </style>
 }{
-<table class="mdl-data-table mdl-js-data-table mdl-cell mdl-cell--12-col mdl-shadow--2dp" style="white-space: normal;">
-    <thead>
-    <tr>
-        <th class="mdl-data-table__cell--non-numeric">Adresse</th>
-        <th class="mdl-data-table__cell--non-numeric">Type</th>
-        <th class="mdl-data-table__cell--non-numeric">Date</th>
-    </tr>
-    </thead>
-    <tbody>
-    @for((application, reviews) <- applications) {
-    <tr onclick="window.document.location='@routes.ApplicationController.show(application.id)';">
-        <td class="mdl-data-table__cell--non-numeric">@application.address</td>
-        <td class="mdl-data-table__cell--non-numeric">@application._type</td>
-        <td class="mdl-data-table__cell--non-numeric">@application.creationDate.toString("dd MMM YYYY", new Locale("fr"))</td>
-    </tr>
+    @if(!newApplications.isEmpty) {
+    <div class="mdl-cell mdl-cell--12-col mdl-grid--no-spacing">
+        <h4 class="mdl-cell mdl-cell--12-col">Nouvelle demandes à instruire</h4>
+        <table class="mdl-data-table mdl-js-data-table mdl-cell mdl-cell--12-col mdl-shadow--2dp" style="white-space: normal;">
+            <thead>
+            <tr>
+                <th class="mdl-data-table__cell--non-numeric">Adresse</th>
+                <th class="mdl-data-table__cell--non-numeric">Type</th>
+                <th class="mdl-data-table__cell--non-numeric">Date</th>
+            </tr>
+            </thead>
+            <tbody>
+            @for((application, reviews) <- newApplications) {
+            <tr onclick="window.document.location='@routes.ApplicationController.show(application.id)';">
+                <td class="mdl-data-table__cell--non-numeric">@application.address</td>
+                <td class="mdl-data-table__cell--non-numeric">@application._type</td>
+                <td class="mdl-data-table__cell--non-numeric">@application.creationDate.toString("dd MMM YYYY", new Locale("fr"))</td>
+            </tr>
+            }
+            </tbody>
+        </table>
+    </div>
     }
-    </tbody>
-</table>
+    @if(!applicationsToReview.isEmpty) {
+    <div class="mdl-cell mdl-cell--12-col mdl-grid--no-spacing">
+    <h4 class="mdl-cell mdl-cell--12-col">Mes avis à laisser</h4>
+    <table class="mdl-data-table mdl-js-data-table mdl-cell mdl-cell--12-col mdl-shadow--2dp" style="white-space: normal;">
+        <thead>
+        <tr>
+            <th class="mdl-data-table__cell--non-numeric">Adresse</th>
+            <th class="mdl-data-table__cell--non-numeric">Type</th>
+            <th class="mdl-data-table__cell--non-numeric">Date</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for((application, reviews) <- applicationsToReview) {
+        <tr onclick="window.document.location='@routes.ApplicationController.show(application.id)';">
+            <td class="mdl-data-table__cell--non-numeric">@application.address</td>
+            <td class="mdl-data-table__cell--non-numeric">@application._type</td>
+            <td class="mdl-data-table__cell--non-numeric">@application.creationDate.toString("dd MMM YYYY", new Locale("fr"))</td>
+        </tr>
+        }
+        </tbody>
+    </table>
+    </div>
+    }
+    @if(!applicationsWithDecisionToTake.isEmpty) {
+    <div class="mdl-cell mdl-cell--12-col mdl-grid--no-spacing">
+        <h4 class="mdl-cell mdl-cell--12-col">Décision à prendre</h4>
+        <table class="mdl-data-table mdl-js-data-table mdl-cell mdl-cell--12-col mdl-shadow--2dp" style="white-space: normal;">
+            <thead>
+            <tr>
+                <th class="mdl-data-table__cell--non-numeric">Adresse</th>
+                <th class="mdl-data-table__cell--non-numeric">Type</th>
+                <th class="mdl-data-table__cell--non-numeric">Date</th>
+            </tr>
+            </thead>
+            <tbody>
+            @for((application, reviews) <- applicationsWithDecisionToTake) {
+            <tr onclick="window.document.location='@routes.ApplicationController.show(application.id)';">
+                <td class="mdl-data-table__cell--non-numeric">@application.address</td>
+                <td class="mdl-data-table__cell--non-numeric">@application._type</td>
+                <td class="mdl-data-table__cell--non-numeric">@application.creationDate.toString("dd MMM YYYY", new Locale("fr"))</td>
+            </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    }
+    <div class="mdl-cell mdl-cell--12-col mdl-grid--no-spacing">
+    </div>
 }

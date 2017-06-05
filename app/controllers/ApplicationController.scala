@@ -28,7 +28,8 @@ class ApplicationController @Inject() (ws: WSClient,
                                        applicationService: ApplicationService,
                                        commentService: CommentService,
                                        fileService: FileService,
-                                       typeformService: TypeformService) extends Controller {
+                                       typeformService: TypeformService,
+                                       implicit val webJarAssets: WebJarAssets) extends Controller {
 
   def projects(city: String) = applicationService.findByCity(city).map { application =>
       (application, reviewService.findByApplicationId(application.id))
@@ -86,11 +87,19 @@ class ApplicationController @Inject() (ws: WSClient,
   def my = loginAction { implicit request =>
     val agent = request.currentAgent
     val responses = projects(request.currentCity)
-    val afterFilter = responses.filter { response =>
+    val agents = agentService.all(request.currentCity)
+    val applicationsToReview = responses.filter { response =>
       response._1.status == "En cours" &&
-        !response._2.exists { _.agentId == agent.id }
+        !response._2.exists { _.agentId == agent.id } &&
+        response._1.reviewerAgentIds.contains(agent.id)
     }
-    Ok(views.html.myApplications(afterFilter, request.currentAgent))
+    val newApplications = responses.filter { response =>
+      response._1.status == "Nouvelle" && agent.instructor
+    }
+    val applicationsWithDecisionToTake = responses.filter { response =>
+      response._1.status == "En cours" && response._2.length >= response._1.numberOfReviewNeeded(agents) && agent.finalReview
+    }
+    Ok(views.html.myApplications(applicationsToReview, newApplications, applicationsWithDecisionToTake, request.currentAgent))
   }
 
   def show(id: String) = loginAction { implicit request =>

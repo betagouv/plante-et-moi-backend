@@ -12,7 +12,8 @@ import play.api.data.Forms._
 
 @Singleton
 class SettingController @Inject()(settingService: SettingService,
-                                loginAction: LoginAction) extends Controller {
+                                  loginAction: LoginAction,
+                                  implicit val webJarAssets: WebJarAssets) extends Controller {
   def all = loginAction { implicit request =>
     val settings = settingService.all(request.currentCity).mapValues(Json.prettyPrint)
     Ok(views.html.allSettings(settings, request.currentAgent))

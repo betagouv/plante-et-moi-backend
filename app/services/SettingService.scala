@@ -15,6 +15,10 @@ class SettingService @Inject()(dbapi: DBApi, configuration: Configuration) exten
   private lazy val cryptoSecret = configuration.underlying.getString("play.crypto.secret")
 
   private val defaultValues = Map(
+    "GENERAL" -> Json.obj(
+      "typeformIds" -> Json.arr(),
+      "domains" -> Json.arr()
+    ),
     "AGENTS" -> Json.arr(
       Json.obj(
         "name" -> "Jean Paul",
