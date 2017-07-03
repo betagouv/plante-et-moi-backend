@@ -12,6 +12,7 @@ import play.api.data._
 import play.api.data.Forms._
 import play.api.libs.mailer.MailerClient
 import actions.{LoginAction, RequestWithAgent}
+import formats.FormRequireBoolean
 
 import scala.concurrent.Future
 import play.api.libs.mailer._
@@ -197,7 +198,7 @@ class ApplicationController @Inject() (ws: WSClient,
   case class ReviewData(favorable: Boolean, comment: String)
   val reviewForm = Form(
     mapping(
-      "favorable" -> boolean,
+      "favorable" -> FormRequireBoolean.requiredBoolean,
       "comment" -> text
     )(ReviewData.apply)(ReviewData.unapply)
   )

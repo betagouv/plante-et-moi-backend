@@ -255,12 +255,13 @@ div hr:last-child {
                 <label class="mdl-textfield__label" for="sample5">Saisir mon commentaire...</label>
             </div>-->
             <input type="hidden" name="comment" value="">
+            <input type="hidden" id="decision-favorable" name="favorable" value="">
             <div class="mdl-cell mdl-cell--12-col mdl-grid">
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-cell mdl-cell--6-col" type="submit" name="favorable" value="true" onclick="return confirmDecision('Favorable');">
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-cell mdl-cell--6-col" type="submit" class="decisionButton" onclick="return confirmDecision(true);">
                 Favorable
             </button>
 
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-cell mdl-cell--6-col" type="submit" name="favorable" value="false" onclick="return confirmDecision('Défavorable');">
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-cell mdl-cell--6-col" type="submit" class="decisionButton" onclick="return confirmDecision(false);">
                 Défavorable
             </button>
             <div></div>
@@ -357,12 +358,19 @@ div hr:last-child {
     window.onload = initImages;
 
     function confirmDecision(decision) {
+        var text;
+        if(decision) {
+            text = "Favorable";
+        } else {
+            text = "Défavorable";
+        }
+        document.getElementById("decision-favorable").value = decision;
         var ret = confirm("L'action suivante est définitive: êtes-vous sûr de prendre une décision "+decision+" ?");
         return ret;
     }
 
     function onFormSubmit() {
-        Array.from(document.getElementsByName("favorable"))
+        Array.from(document.getElementsByClassName("decisionButton"))
             .forEach(function(button){
                  button.disabled = true;
             });
