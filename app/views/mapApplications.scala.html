@@ -6,6 +6,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@@1.0.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@@1.0.1/dist/leaflet.js"></script>
     <script src='@routes.Assets.versioned("javascripts/Leaflet+Data.js")'></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
 
     <style>
     .map__leaflet {
@@ -63,11 +66,37 @@
 	};
 	request.send();
 
-
 	function addProjects() {
         projects.map(function(project){
+            var icon;
+            if(project.status == "Favorable") {
+                var icon = L.AwesomeMarkers.icon({
+                icon: 'check',
+                prefix: 'fa',
+                markerColor: 'green'
+              });
+            } else if(project.status == "Défavorable") {
+                var icon = L.AwesomeMarkers.icon({
+                icon: 'times',
+                prefix: 'fa',
+                markerColor: 'red'
+              });
+            } else if(project.status == "En cours") {
+                var icon = L.AwesomeMarkers.icon({
+                icon: 'question',
+                prefix: 'fa',
+                markerColor: 'yellow'
+              });
+            } else {
+               var icon = L.AwesomeMarkers.icon({
+                icon: 'certificate',
+                prefix: 'fa',
+                markerColor: 'blue'
+              });
+            }
             L.marker(project.latlng)
                .bindPopup(project.type+" au "+project.address+" par "+project.name+" ( "+project.status+" )")
+               .setIcon(icon)
 			   .addTo(projectsLayer);
 	    })
 		projectsLayer.addTo(map);
