@@ -53,7 +53,7 @@ class ApplicationController @Inject() (ws: WSClient,
         val filename = file.name
         Ok(file.data.get).withHeaders("Content-Disposition" -> s"attachment; filename=$filename").as(contentType)
       case _ =>
-        NotFound("Fichier inconnu en interne")
+        NotFound("Fichier inconnu en interne. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
     }
   }
 
@@ -136,7 +136,7 @@ class ApplicationController @Inject() (ws: WSClient,
 
   def getLogin() = Action { implicit request =>
     request.session.get("city").map(_.toLowerCase()).fold {
-      BadRequest("Pas de ville sélectionné, contactez un administrateur")
+      BadRequest("Pas de ville sélectionné. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
     } { city =>
       Ok(views.html.login(city, Left(agentService.all(city))))
     }
@@ -144,7 +144,7 @@ class ApplicationController @Inject() (ws: WSClient,
 
   def postLogin() = Action { implicit request =>
     request.session.get("city").map(_.toLowerCase()).fold {
-      BadRequest("Pas de ville sélectionné, contactez un administrateur")
+      BadRequest("Pas de ville sélectionné. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
     } { city =>
       val agents = agentService.all(city)
       request.body.asFormUrlEncoded.get.get("id").flatMap(_.headOption).flatMap(id => agents.find(_.id == id)).fold {
@@ -185,13 +185,13 @@ class ApplicationController @Inject() (ws: WSClient,
   )
 
   def addComment(applicationId: String) = loginAction { implicit request =>
-    (reviewForm.bindFromRequest.value, applicationById(applicationId, request.currentCity)) match {
+    (commentForm.bindFromRequest.value, applicationById(applicationId, request.currentCity)) match {
       case (Some(commentData), Some((application, reviews))) =>
         val comment = Comment(UUID.randomUUID, applicationId, request.currentAgent.id, request.currentCity, DateTime.now(), commentData.comment)
         commentService.insert(comment) // Erreur non géré
         Redirect(routes.ApplicationController.show(applicationId)).flashing("success" -> "Votre commentaire a bien été pris en compte.")
       case _ =>
-        BadRequest("Error pour l'ajout du commentaire: la demande n'existe pas ou le contenu du formulaire est incorrect")
+        BadRequest("Error pour l'ajout du commentaire: la demande n'existe pas ou le contenu du formulaire est incorrect. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
     }
   }
 
@@ -218,7 +218,7 @@ class ApplicationController @Inject() (ws: WSClient,
           Redirect(routes.ApplicationController.my()).flashing("success" -> "Votre avis a bien été pris en compte.")
         }
       case _ =>
-        Future.successful(BadRequest("Error pour l'ajout de l'avis: la demande n'existe pas ou le contenu du formulaire est incorrect"))
+        Future.successful(BadRequest("Error pour l'ajout de l'avis: la demande n'existe pas ou le contenu du formulaire est incorrect. Vous pouvez signaler l'erreur à l'équipe Plante et Moi"))
     }
   }
 
@@ -240,7 +240,7 @@ class ApplicationController @Inject() (ws: WSClient,
           }.foreach(sendCompletedApplicationEmailToAgent(application, request, agent, status))
           Redirect(routes.ApplicationController.my()).flashing("success" -> "Votre avis a bien été pris en compte.")
         case _ =>
-          BadRequest("Error pour la prise de décision, la demande n'existe pas ou le contenu du formulaire est incorrect")
+          BadRequest("Error pour la prise de décision, la demande n'existe pas ou le contenu du formulaire est incorrect. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
       }
     }
   }
@@ -255,7 +255,7 @@ class ApplicationController @Inject() (ws: WSClient,
         fileService.insert(file)
         Redirect(routes.ApplicationController.show(applicationId)).flashing("success" -> "Votre fichier a bien été pris en compte.")
       case _ =>
-        BadRequest("Error pour l'ajout du fichier: la demande n'existe pas ou le contenu du formulaire est incorrect")
+        BadRequest("Error pour l'ajout du fichier: la demande n'existe pas ou le contenu du formulaire est incorrect. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
     }
   }
 
@@ -279,7 +279,7 @@ class ApplicationController @Inject() (ws: WSClient,
 
         Redirect(routes.ApplicationController.all()).flashing("success" -> "Le statut de la demande a été mis à jour, un mail a été envoyé aux agents pour obtenir leurs avis.")
       case _ =>
-        NotFound("Formulaire incorrect ou application incorrect")
+        NotFound("Formulaire incorrect ou application incorrect. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
     }
   }
 
