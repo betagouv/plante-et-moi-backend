@@ -34,7 +34,8 @@
           name: "@application.applicantName",
           address: "@application.address",
           status: "@application.status",
-          type: "@application._type"
+          type: "@application._type",
+          link: "@routes.ApplicationController.show(application.id)"
         },
 	}
 	];
@@ -83,9 +84,9 @@
               });
             } else if(project.status == "En cours") {
                 var icon = L.AwesomeMarkers.icon({
-                icon: 'question',
+                icon: 'spinner',
                 prefix: 'fa',
-                markerColor: 'yellow'
+                markerColor: 'cadetblue'
               });
             } else {
                var icon = L.AwesomeMarkers.icon({
@@ -95,7 +96,7 @@
               });
             }
             L.marker(project.latlng)
-               .bindPopup(project.type+" au "+project.address+" par "+project.name+" ( "+project.status+" )")
+               .bindPopup(project.type+" au "+project.address+" par "+project.name+" ( "+project.status+" ) <a href='"+project.link+"'>Voir la demande</a>")
                .setIcon(icon)
 			   .addTo(projectsLayer);
 	    })
