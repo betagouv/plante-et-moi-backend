@@ -277,7 +277,7 @@ class ApplicationController @Inject() (ws: WSClient,
         val newApplication = application.copy(status = "En cours", reviewerAgentIds = selectedAgents.map(_.id))
         applicationService.update(newApplication)
 
-        Redirect(routes.ApplicationController.all()).flashing("success" -> "Le statut de la demande a été mis à jour, un mail a été envoyé aux agents pour obtenir leurs avis.")
+        Redirect(routes.ApplicationController.my()).flashing("success" -> "Le statut de la demande a été mis à jour, un mail a été envoyé aux agents pour obtenir leurs avis.")
       case _ =>
         NotFound("Formulaire incorrect ou application incorrect. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
     }
