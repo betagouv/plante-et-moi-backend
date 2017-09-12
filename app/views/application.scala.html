@@ -191,9 +191,19 @@ div hr:last-child {
 } else {
 <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
     <h3 class="mdl-cell mdl-cell--12-col">Avis</h3>
+    <div class="mdl-cell mdl-cell--12-col mdl-grid">
+        Avis demandé à :
+        <ul>
+        @for(agentId <- application.reviewerAgentIds) {
+            @defining(agents.find(_.id == agentId).head) { agent =>
+                <li>@agent.name (@agent.qualite.capitalize)</li>
+            }
+        }
+        </ul>
+    </div>
     @if(reviews.isEmpty) {
         <div class="mdl-cell mdl-cell--12-col mdl-grid">
-            <p>Pas encore d'avis</p>
+            <p>Pas encore d'avis laissé</p>
         </div>
     } else {
         @for((review,agent) <- reviews) {
