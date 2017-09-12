@@ -238,13 +238,28 @@ class ApplicationController @Inject() (ws: WSClient,
           agentService.all(request.currentCity).filter {
             _.instructor
           }.foreach(sendCompletedApplicationEmailToAgent(application, request, agent, status))
-          Redirect(routes.ApplicationController.my()).flashing("success" -> "Votre avis a bien été pris en compte.")
+          Redirect(routes.ApplicationController.my()).flashing("success" -> "Votre décision a bien été pris en compte.")
         case _ =>
           BadRequest("Error pour la prise de décision, la demande n'existe pas ou le contenu du formulaire est incorrect. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
       }
     }
   }
 
+  def invalidate(applicationId: String) = loginAction { implicit request =>
+    if (!request.currentAgent.instructor) {
+      Unauthorized("Vous n'avez pas le droit d'invalider une demande")
+    } else {
+      applicationById(applicationId, request.currentCity) match {
+        case Some((application, reviews)) =>
+          val agent = request.currentAgent
+          val newApplication = application.copy(status = "Invalide")
+          applicationService.update(newApplication)
+          Redirect(routes.ApplicationController.my()).flashing("success" -> "La demande a été invalidé")
+        case _ =>
+          BadRequest("Error pour l'invalidation, la demande n'existe pas. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
+      }
+    }
+  }
 
   def addFile(applicationId: String) = loginAction { request =>
     (request.body.asMultipartFormData.get.file("file"), applicationById(applicationId, request.currentCity)) match {
@@ -258,7 +273,6 @@ class ApplicationController @Inject() (ws: WSClient,
         BadRequest("Error pour l'ajout du fichier: la demande n'existe pas ou le contenu du formulaire est incorrect. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
     }
   }
-
 
   case class AskReviewData(agentIds: List[String])
   val askReviewForm = Form(

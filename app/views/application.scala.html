@@ -48,7 +48,7 @@ div hr:last-child {
     </div>
 </div>
 
-<table class="application mdl-data-table mdl-js-data-table mdl-cell @if(application.imagesFiles.isEmpty) {mdl-cell--12-col} else {mdl-cell--6-col} mdl-cell--12-col-phone mdl-cell--8-col-print mdl-shadow--2dp" style="table-layout: fixed;">
+<table class="application mdl-data-table mdl-js-data-table mdl-cell @if(application.imagesFiles.isEmpty) {mdl-cell--12-col} else {mdl-cell--6-col} mdl-cell--12-col-phone mdl-cell--8-col-print mdl-shadow--2dp" style="table-layout: fixed;  @if(application.status == "Invalide") { text-decoration: line-through; }">
     <tbody>
     <tr>
         <td class="mdl-data-table__cell--non-numeric application__key" >Statut</td>
@@ -243,10 +243,10 @@ div hr:last-child {
     </form>
 </div>
 }
-@if(application.status != "Nouvelle") {
-<div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid do-not-print">
-    <form action="@routes.ApplicationController.takeDecision(application.id)" class="mdl-cell mdl-cell--12-col mdl-grid mdl-grid--no-spacing" method="post" onsubmit="onFormSubmit();">
-        @if(currentAgent.finalReview && application.status == "En cours") {
+@if(application.status != "Nouvelle" && application.status != "Invalide") {
+<div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
+    @if(currentAgent.finalReview && application.status == "En cours") {
+        <form action="@routes.ApplicationController.takeDecision(application.id)" class="mdl-cell mdl-cell--12-col mdl-grid mdl-grid--no-spacing do-not-print" method="post" onsubmit="onFormSubmit();">
             <h3 class="mdl-cell mdl-cell--12-col">Prendre la décision finale</h3>
             <span style="color: red; padding: 5px;">Si la décision est favorable, un instructeur devra envoyer le permis. La décision est définitive et empêchera le dépot de nouveau avis.</span>
             <!--
@@ -264,18 +264,25 @@ div hr:last-child {
             <button class="mdl-button mdl-js-button mdl-button--raised mdl-cell mdl-cell--6-col" type="submit" class="decisionButton" onclick="return confirmDecision(false);">
                 Défavorable
             </button>
-            <div></div>
-        } else {
-            <h3 class="mdl-cell mdl-cell--12-col">Décision</h3>
-            <div class="mdl-cell mdl-cell--12-col mdl-grid">
-                @if(application.status == "Défavorable" || application.status == "Favorable") {
-                    <h4 style="color: @if(application.status == "Défavorable"){ red } else { green }">@application.status</h4>
-                } else {
-                    <p>Décision pas encore prise</p>
-                }
             </div>
-        }
-    </form>
+        </form>
+    } else {
+        <h3 class="mdl-cell mdl-cell--12-col">Décision</h3>
+        <div class="mdl-cell mdl-cell--12-col mdl-grid">
+            @if(application.status == "Défavorable" || application.status == "Favorable") {
+                <h4 style="color: @if(application.status == "Défavorable"){ red } else { green }">@application.status</h4>
+            } else {
+                <p>Décision pas encore prise</p>
+            }
+        </div>
+    }
+</div>
+}
+@if(currentAgent.instructor && application.status != "Invalide") {
+<div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid do-not-print">
+    <h3 class="mdl-cell mdl-cell--12-col">Invalider la demande</h3>
+    <p>Une demande invalidé ne sera plus visible dans les résultats de demandes ni dans les statistiques. Vous pouvez invalider une demande faite par erreur, malveillance ou aillant été annulé par le demandeur. <br><span style="font-weight: bold; color: red;">Cette action est irréversible pour le moment: </span>
+        <a href="#" onclick="return invalidateApplication();">Je souhaite invalider la demande</a></p>
 </div>
 }
 <script>
@@ -286,6 +293,13 @@ div hr:last-child {
         layers: [mapLayer]
     });
     L.control.layers(baseMaps, {}, ({collapsed: false })).addTo(map);
+
+    function invalidateApplication() {
+        var ret = confirm("L'invalidation de la demande est définitive: êtes-vous sûr de prendre cette décision ?");
+        if(ret == true) {
+            document.location = "@routes.ApplicationController.invalidate(application.id)";
+        }
+    }
 
 	function addressesDataSource(term, response){
     		try { requestAddresses.abort(); } catch(e){}
