@@ -56,6 +56,18 @@ class AgentService @Inject()(configuration: play.api.Configuration, settingServi
       true,
       false,
       false
+    ),
+    Agent(
+      "sebastian",
+      city,
+      "Sebastian Sachetti",
+      "Administrateur Plante Et Moi",
+      ("sebastian.sachetti"+"@beta.gouv.fr"),
+      Hash.sha256(s"sebastian$city$cryptoSecret"),
+      true,
+      true,
+      false,
+      false
     )
   )
 
