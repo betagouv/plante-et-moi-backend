@@ -118,7 +118,7 @@ div hr:last-child {
     @for((comment,commentAgent) <- comments) {
         <div class="mdl-cell mdl-cell--12-col">
             <span style="width: 100%"><b>@application.creationDate.toString("dd MMM YYYY", new Locale("fr")): @commentAgent.name (@commentAgent.qualite.capitalize)</b></span>
-            <pre style="width: 100%">@comment.comment</pre>
+            <pre style="width: 100%; white-space: pre-wrap;">@comment.comment</pre>
         </div>
         <hr>
     }
@@ -211,7 +211,7 @@ div hr:last-child {
                 <span style="width: 100%"><b>@application.creationDate.toString("dd MMM YYYY", new Locale("fr")): @agent.name (@agent.qualite.capitalize)</b>
                 @if(review.favorable){Favorable}else{Défavorable} <i class="material-icons mdl-list__item-icon">@if(review.favorable) {check}else{block}</i></span>
                 @if(!review.comment.isEmpty()) {
-                    <pre style="width: 100%">@review.comment</pre>
+                    <pre style="width: 100%; white-space: pre-wrap;">@review.comment</pre>
                 }
             </div>
             <hr>
