@@ -3,6 +3,7 @@ package services
 import java.util.Locale
 import javax.inject.{Inject, Singleton}
 
+import actions.RequestWithAgent
 import akka.actor.ActorSystem
 import controllers.routes
 import models._
@@ -10,6 +11,7 @@ import play.api.Logger
 import play.api.libs.mailer.MailerClient
 import models.Email
 import org.joda.time.DateTime
+import play.api.mvc.AnyContent
 import utils.UUID
 
 @Singleton
@@ -132,6 +134,38 @@ class NotificationsService @Inject()(system: ActorSystem,
         Array(s"${application.applicantName} <${application.applicantEmail}>"),
         bodyText = body,
         replyTo = emailTemplate.replyTo
+      )
+    }
+
+    def applicationUpdated(application: Application, what: String, messageType: String, who: Agent): Boolean = {
+      val agents = agentService.all(application.city).filter(_.instructor)
+      val instructorEmails = agents.filter(_.id != who.id).map(generateUpdateEmailToAgent(application, who, what, messageType))
+
+      instructorEmails.foreach(sendMail)
+      return true
+    }
+
+    private def generateUpdateEmailToAgent(application: models.Application, who: Agent, what: String, messageType: String)(agent: Agent): Email = {
+      val url = s"${routes.ApplicationController.show(application.id).absoluteURL(https, host)}?city=${application.city}&key=${agent.key}"
+
+      val body = s"""Bonjour ${agent.name},
+                    |
+                    |${who.name} a $what pour la demande de végétalisation au ${application.address} (c'est un projet de ${application._type}).
+                    |Vous pouvez voir la demande ici :
+                    |${url}
+                    |
+                    |""".stripMargin
+      Email(
+        UUID.randomUUID,
+        application.id,
+        Some(agent.id),
+        application.city,
+        DateTime.now(),
+        messageType,
+        s"${who.name} a $what (Plante Et Moi)",
+        "Plante et Moi <administration@plante-et-moi.fr>",
+        Array(s"${agent.name} <${agent.email}>"),
+        bodyText = body
       )
     }
 }

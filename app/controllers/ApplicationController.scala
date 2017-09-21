@@ -16,7 +16,7 @@ import formats.FormRequireBoolean
 
 import scala.concurrent.Future
 import play.api.libs.mailer._
-import services.{ApplicationService, CommentService, FileService, TypeformService}
+import services._
 import utils.{Hash, UUID}
 
 @Singleton
@@ -30,6 +30,7 @@ class ApplicationController @Inject() (ws: WSClient,
                                        commentService: CommentService,
                                        fileService: FileService,
                                        typeformService: TypeformService,
+                                       notificationsService: NotificationsService,
                                        implicit val webJarAssets: WebJarAssets) extends Controller {
 
   def projects(city: String) = applicationService.findByCity(city).map { application =>
@@ -204,21 +205,30 @@ class ApplicationController @Inject() (ws: WSClient,
   )
 
   def addReview(applicationId: String) = loginAction.async { implicit request =>
-    (reviewForm.bindFromRequest.value, applicationById(applicationId, request.currentCity)) match {
-      case (Some(reviewData), Some((application, reviews))) =>
-        val agent = request.currentAgent
-        val agents = agentService.all(request.currentCity)
-        val review = Review(applicationId, agent.id, DateTime.now(), reviewData.favorable, reviewData.comment)
-        Future(reviewService.insertOrUpdate(review)).map { _ =>
-          val numberOrReviewNeededBeforeFinal = application.numberOfReviewNeeded(agents)
-          val numberOfReview = reviews.length
-          if(!reviews.exists(_.agentId == agent.id) && numberOrReviewNeededBeforeFinal == numberOfReview) {
-            agentService.all(request.currentCity).filter { agent => agent.finalReview }.foreach(sendRequestDecisionEmailToAgent(application, request))
+    if (!request.currentAgent.canReview) {
+      Future.successful(Unauthorized("Vous n'avez pas le droit d'ajouter un avis sur cette demande"))
+    } else {
+      (reviewForm.bindFromRequest.value, applicationById(applicationId, request.currentCity)) match {
+        case (Some(reviewData), Some((application, reviews))) =>
+          val agent = request.currentAgent
+          val agents = agentService.all(request.currentCity)
+          val review = Review(applicationId, agent.id, DateTime.now(), reviewData.favorable, reviewData.comment)
+          Future(reviewService.insertOrUpdate(review)).map { edited =>
+            val numberOrReviewNeededBeforeFinal = application.numberOfReviewNeeded(agents)
+            val numberOfReview = reviews.length
+            if (!reviews.exists(_.agentId == agent.id) && numberOrReviewNeededBeforeFinal == numberOfReview) {
+              agentService.all(request.currentCity).filter { agent => agent.finalReview }.foreach(sendRequestDecisionEmailToAgent(application, request))
+            }
+            if(edited) {
+              notificationsService.applicationUpdated(application, "modifié un avis", "CHANGE_REVIEW", agent)
+            } else {
+              notificationsService.applicationUpdated(application, "ajouté un avis", "ADD_REVIEW", agent)
+            }
+            Redirect(routes.ApplicationController.my()).flashing("success" -> "Votre avis a bien été pris en compte.")
           }
-          Redirect(routes.ApplicationController.my()).flashing("success" -> "Votre avis a bien été pris en compte.")
-        }
-      case _ =>
-        Future.successful(BadRequest("Error pour l'ajout de l'avis: la demande n'existe pas ou le contenu du formulaire est incorrect. Vous pouvez signaler l'erreur à l'équipe Plante et Moi"))
+        case _ =>
+          Future.successful(BadRequest("Error pour l'ajout de l'avis: la demande n'existe pas ou le contenu du formulaire est incorrect. Vous pouvez signaler l'erreur à l'équipe Plante et Moi"))
+      }
     }
   }
 
