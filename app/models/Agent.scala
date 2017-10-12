@@ -34,18 +34,6 @@ class AgentService @Inject()(configuration: play.api.Configuration, settingServi
 
   def defaultAgents(city: String) = List(
     Agent(
-      "celia",
-      city,
-      "Celia Henry",
-      "Administratrice Plante Et Moi",
-      ("celia.henry"+"@beta.gouv.fr"),
-      Hash.sha256(s"celia$city$cryptoSecret"),
-      true,
-      true,
-      false,
-      false
-    ),
-    Agent(
       "julien",
       city,
       "Julien Dauphant",
