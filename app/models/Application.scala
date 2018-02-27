@@ -29,4 +29,8 @@ case class Application(id: String,
    lazy val notImageFiles = files.filter(!imageFilter(_))
 
    def numberOfReviewNeeded(agents: Traversable[Agent]) = reviewerAgentIds.flatMap(id => agents.filter(_.id == id)).groupBy(_.qualite).size
+
+   lazy val searchData = {
+      s"""$applicantFirstname $applicantLastname $applicantEmail ${applicantAddress.getOrElse("")} ${_type} ${fields.values.mkString(" ")}"""
+   }
 }

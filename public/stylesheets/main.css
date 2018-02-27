@@ -124,3 +124,7 @@ html, body {
 .mdl-button--raised.mdl-button--colored {
     color: white;
 }
+
+.invisible {
+    display: none;
+}

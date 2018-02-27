@@ -10,9 +10,48 @@
     td {
         cursor: pointer;
     }
+    #search-input {
+        font-size: 17px;
+        padding: 5px;
+    }
 </style>
+<script>
+        var extract = 9;
+        function onSearch() {
+            var searchTerm = document.getElementById("search-input").value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+            if(searchTerm.length > 2) {
+                Array.from(document.querySelectorAll("tfoot")).forEach(function (app) { app.classList.remove("invisible") });
+                Array.from(document.querySelectorAll(".application-row")).forEach(function (app) {
+                    if (searchTerm.length > 2) {
+                        var searchData = app.getAttribute("data-search");
+                        var searchResult = searchData.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").indexOf(searchTerm);
+                        if(searchResult !== -1) {
+                            app.classList.remove("invisible");
+                            var minIndex = Math.max(searchResult - extract, 0);
+                            var maxIndex = Math.min(searchResult + searchTerm.length + extract, searchData.length);
+                            app.querySelector(".search-cell").innerHTML = searchData.substring(minIndex, searchResult) +
+                                    '<span style="font-weight: bold">'+searchData.substring(searchResult, searchResult + searchTerm.length)+
+                                    "</span>"+searchData.substring(searchResult + searchTerm.length, maxIndex);
+                        } else {
+                            app.classList.add("invisible");
+                            app.querySelector(".search-cell").innerHTML = "";
+                        }
+                    }
+                });
+            } else {
+                Array.from(document.querySelectorAll(".application-row")).forEach(function (app) { app.classList.remove("invisible"); });
+                Array.from(document.querySelectorAll(".search-cell")).forEach(function (cell) { cell.innerHTML=""; });
+                Array.from(document.querySelectorAll("tfoot")).forEach(function (app) { app.classList.add("invisible") });
+            }
+        }
+        function clearSearch() {
+            document.getElementById("search-input").value = "";
+            onSearch();
+        }
+</script>
 }{
-<div class="mdl-cell mdl-cell--12-col pem-container">
+    <input class="mdl-cell mdl-cell--12-col" type="search" placeholder="Filtrer les demandes (saisir nom, adresse ou un mot clé contenu dans la demande)" id="search-input" onsearch="onSearch()" oninput="onSearch()"/><br>
+    <div class="mdl-cell mdl-cell--12-col pem-container">
     <table class="mdl-data-table mdl-js-data-table pem-table mdl-shadow--2dp" style="white-space: normal;">
         <thead>
         <tr>
@@ -21,16 +60,23 @@
             <th class="mdl-data-table__cell--non-numeric">Date de la demande</th>
             <th class="mdl-data-table__cell--non-numeric">Avancement</th>
             <th class="mdl-data-table__cell--non-numeric">Type</th>
+            <th class="mdl-data-table__cell--non-numeric"></th>
         </tr>
         </thead>
+        <tfoot class="invisible">
+            <tr>
+                <td class="mdl-data-table__cell--non-numeric" colspan="4" style="text-align: center"><button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" onclick="clearSearch()">Supprimer le filtre et afficher toutes les demandes</button></td>
+            </tr>
+        </tfoot>
         <tbody>
         @for((application, reviews) <- applications) {
-            <tr onclick="window.document.location='@routes.ApplicationController.show(application.id)';" @if(application.status == "Invalide") { style="text-decoration: line-through;" } >
+            <tr onclick="window.document.location='@routes.ApplicationController.show(application.id)';" @if(application.status == "Invalide") { style="text-decoration: line-through;" }  data-search="@application.searchData" class="application-row">
                 <td class="mdl-data-table__cell--non-numeric">@application.address</td>
                 <td class="mdl-data-table__cell--non-numeric">@application.applicantName</td>
                 <td class="mdl-data-table__cell--non-numeric">@application.creationDate.toString("dd MMM YYYY", new Locale("fr"))</td>
                 <td class="mdl-data-table__cell--non-numeric" style="@if(application.status == "Défavorable"){ color: red } else { @if(application.status == "Favorable") { color: green }}">@application.status@if(application.status == "En cours") { (Avis: @reviews.length / @application.numberOfReviewNeeded(agents)) } </td>
                 <td class="mdl-data-table__cell--non-numeric">@application._type</td>
+                <td class="mdl-data-table__cell--non-numeric search-cell"></td>
             </tr>
         }
         </tbody>
