@@ -31,6 +31,7 @@ case class Application(id: String,
    def numberOfReviewNeeded(agents: Traversable[Agent]) = reviewerAgentIds.flatMap(id => agents.filter(_.id == id)).groupBy(_.qualite).size
 
    lazy val searchData = {
-      s"""$applicantFirstname $applicantLastname $applicantEmail ${applicantAddress.getOrElse("")} ${_type} ${fields.values.mkString(" ")}"""
+      val stripChars = "\"<>'";
+      s"""${applicantFirstname.filterNot(stripChars contains _)} ${applicantLastname.filterNot(stripChars contains _)} ${applicantEmail.filterNot(stripChars contains _)} ${applicantAddress.getOrElse("").filterNot(stripChars contains _)} ${_type.getOrElse("").filterNot(stripChars contains _)} ${fields.values.map(_.filterNot(stripChars contains _)).mkString(" ")} $status"""
    }
 }
