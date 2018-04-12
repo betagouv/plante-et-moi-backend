@@ -117,7 +117,7 @@ div hr:last-child {
         <h3 class="mdl-cell mdl-cell--12-col">Commentaires</h3>
     @for((comment,commentAgent) <- comments) {
         <div class="mdl-cell mdl-cell--12-col">
-            <span style="width: 100%"><b>@application.creationDate.toString("dd MMM YYYY", new Locale("fr")): @commentAgent.name (@commentAgent.qualite.capitalize)</b></span>
+            <span style="width: 100%"><b>@comment.creationDate.toString("dd MMM YYYY", new Locale("fr")): @commentAgent.name (@commentAgent.qualite.capitalize)</b></span>
             <pre style="width: 100%; white-space: pre-wrap;">@comment.comment</pre>
         </div>
         <hr>
