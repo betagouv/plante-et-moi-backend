@@ -52,6 +52,9 @@
 }{
     <input class="mdl-cell mdl-cell--12-col" type="search" placeholder="Filtrer les demandes (saisir nom, adresse ou un mot clé contenu dans la demande)" id="search-input" onsearch="onSearch()" oninput="onSearch()"/><br>
     <div class="mdl-cell mdl-cell--12-col pem-container">
+    @if(agent.instructor || agent.admin) {
+         Total : @applications.size / @List("Nouvelle", "En cours", "Favorable", "Défavorable", "Invalide").map(status => s"$status : ${applications.count(_._1.status == status)}").mkString(" / ")
+    }
     <table class="mdl-data-table mdl-js-data-table pem-table mdl-shadow--2dp" style="white-space: normal;">
         <thead>
         <tr>
