@@ -1,0 +1,3 @@
+@(applications: Seq[Application])"Ville";"Id";"Etat";"Date de Création";"Adresse Projet";"Longitude";"Latitude";"Type";"Prénom Demandeur";"Nom Demandeur";"Email Demandeur";"Adresse Demandeur";"Téléphone Demandeur"
+@for(a <- applications) {"@a.city";"@a.id";"@a.status";"@a.creationDate";"@a.address";"@a.coordinates.longitude";"@a.coordinates.latitude";"@a._type";"@a.applicantFirstname";"@a.applicantName";"@a.applicantEmail";"@a.applicantAddress";"@a.applicantPhone.getOrElse("")"
+}

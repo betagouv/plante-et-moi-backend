@@ -1,13 +1,14 @@
 package controllers
 
 import java.nio.file.Files
+import java.util.Locale
 import javax.inject._
 
 import play.api.mvc._
 import play.api.libs.ws._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import models._
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, DateTimeZone}
 import play.api.data._
 import play.api.data.Forms._
 import play.api.libs.mailer.MailerClient
@@ -32,6 +33,8 @@ class ApplicationController @Inject() (ws: WSClient,
                                        typeformService: TypeformService,
                                        notificationsService: NotificationsService,
                                        implicit val webJarAssets: WebJarAssets) extends Controller {
+
+  private val timeZone = DateTimeZone.forID("Europe/Paris")
 
   def projects(city: String) = applicationService.findByCity(city).map { application =>
       (application, reviewService.findByApplicationId(application.id))
@@ -79,6 +82,12 @@ class ApplicationController @Inject() (ws: WSClient,
     val responses = projects(request.currentCity)
     val agents = agentService.all(request.currentCity)
     Ok(views.html.allApplications(responses, request.currentAgent, agents))
+  }
+
+  def allCSV = loginAction { implicit request =>
+    val responses = applicationService.findByCity(request.currentCity)
+    val date = DateTime.now(timeZone).toString("dd-MMM-YYY-HHhmm", new Locale("fr"))
+    Ok(views.html.allApplicationsCSV(responses)).as("text/csv").withHeaders("Content-Disposition" -> s"""attachment; filename="${request.currentCity}-${date}.csv"""" )
   }
 
   def map = loginAction { implicit request =>
