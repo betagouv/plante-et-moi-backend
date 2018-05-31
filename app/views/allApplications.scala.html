@@ -73,7 +73,7 @@
         </tfoot>
         <tbody>
         @for((application, reviews) <- applications) {
-            <tr onclick="window.document.location='@routes.ApplicationController.show(application.id)';" @if(application.status == "Invalide") { style="text-decoration: line-through;" }  data-search="@application.searchData" class="application-row">
+            <tr onclick="window.document.location='@routes.ApplicationController.show(application.id)';" @if(application.status == "Invalide") { style="text-decoration: line-through;" }  data-search="@application.searchData(agents)" class="application-row">
                 <td class="mdl-data-table__cell--non-numeric">@application.address</td>
                 <td class="mdl-data-table__cell--non-numeric">@application.applicantName</td>
                 <td class="mdl-data-table__cell--non-numeric">@application.creationDate.toString("dd MMM YYYY", new Locale("fr"))</td>
