@@ -86,8 +86,9 @@ class ApplicationController @Inject() (ws: WSClient,
 
   def allCSV = loginAction { implicit request =>
     val responses = applicationService.findByCity(request.currentCity)
+    val agents = agentService.all(request.currentCity)
     val date = DateTime.now(timeZone).toString("dd-MMM-YYY-HHhmm", new Locale("fr"))
-    Ok(views.html.allApplicationsCSV(responses)).as("text/csv").withHeaders("Content-Disposition" -> s"""attachment; filename="${request.currentCity}-${date}.csv"""" )
+    Ok(views.html.allApplicationsCSV(responses,agents)).as("text/csv").withHeaders("Content-Disposition" -> s"""attachment; filename="${request.currentCity}-${date}.csv"""" )
   }
 
   def map = loginAction { implicit request =>

@@ -16,7 +16,9 @@ case class Agent(id: String,
                  admin: Boolean,
                  instructor: Boolean,
                  canReview: Boolean,
-                 finalReview: Boolean)
+                 finalReview: Boolean){
+  def toShortString = s"$name (${qualite.capitalize})"
+}
 
 @javax.inject.Singleton
 class AgentService @Inject()(configuration: play.api.Configuration, settingService: SettingService) {
