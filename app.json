@@ -1,0 +1,53 @@
+{
+  "name": "plante-et-moi-backend",
+  "scripts": {
+  },
+  "env": {
+    "APP_HOST": {
+      "required": true
+    },
+    "APPLICATION_SECRET": {
+      "required": true
+    },
+    "DATABASE_DRIVER": {
+      "required": true
+    },
+    "EVOLUTIONS_AUTOAPPLY": {
+      "required": true
+    },
+    "MAIL_HOST": {
+      "required": true
+    },
+    "MAIL_PASSWORD": {
+      "required": true
+    },
+    "MAIL_PORT": {
+      "required": true
+    },
+    "MAIL_USER": {
+      "required": true
+    },
+    "TYPEFORM_DOMAINS": {
+      "required": true
+    },
+    "TYPEFORM_IDS": {
+      "required": true
+    },
+    "TYPEFORM_KEY": {
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "addons": [
+    "heroku-postgresql"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/scala"
+    }
+  ]
+}
