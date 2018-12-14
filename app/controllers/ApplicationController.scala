@@ -64,15 +64,15 @@ class ApplicationController @Inject() (ws: WSClient,
 
   private def getImageFromTypeform(url: String): Future[Result] = {
     var request = ws.url(url.replaceFirst(":443", ""))
-    if(url.contains("api.typeform.com")) {
-      request = request.withQueryString("key" -> typeformService.key)
+    if(url.contains("typeform.com")) {
+      request = request.withHeaders("authorization" -> s"bearer ${typeformService.key}")
     }
     request.get().map { fileResult =>
       if(fileResult.status >= 300) {
         NotFound("")
       } else {
         val contentType = fileResult.header("Content-Type").getOrElse("text/plain")
-        val filename = url.split('/').last
+        val filename = url.replace("/download", "").split('/').last
         Ok(fileResult.bodyAsBytes).withHeaders("Content-Disposition" -> s"attachment; filename=$filename").as(contentType)
       }
     }
