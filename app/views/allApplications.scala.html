@@ -1,5 +1,5 @@
 @import models._
-@(applicationsByYear: List[(Int, List[(Application, List[Review])])], agent: Agent, agents: List[Agent])(implicit flash: Flash, webJarAssets: WebJarAssets)
+@(cityApplications: List[(Application, List[Review])], agent: Agent, agents: List[Agent])(implicit flash: Flash, webJarAssets: WebJarAssets)
 @import java.util.Locale
 
 @main(agent)("Toutes les demandes") {
@@ -52,8 +52,9 @@
 }{
     <input class="mdl-cell mdl-cell--12-col" type="search" placeholder="Filtrer les demandes (saisir nom, adresse ou un mot clé contenu dans la demande)" id="search-input" onsearch="onSearch()" oninput="onSearch()"/><br>
     <div class="mdl-cell mdl-cell--12-col pem-container">
-    @for((year, applications) <- applicationsByYear) {
-    <h3>@year</h3>
+    @defining(cityApplications.groupBy(_._1.creationDate.getYear).toList.sortBy(_._1).reverse) {   applicationsByYear =>
+        @for((year, applications) <- applicationsByYear) {
+        <h3>@year</h3>
     @if(agent.instructor || agent.admin) {
          Total : @applications.size / @List("Nouvelle", "En cours", "Favorable", "Défavorable", "Invalide").map(status => s"$status : ${applications.count(_._1.status == status)}").mkString(" / ")
     }
@@ -77,7 +78,19 @@
         @for((application, reviews) <- applications) {
             <tr onclick="window.document.location='@routes.ApplicationController.show(application.id)';" @if(application.status == "Invalide") { style="text-decoration: line-through;" }  data-search="@application.searchData(agents)" class="application-row">
                 <td class="mdl-data-table__cell--non-numeric">@application.address</td>
-                <td class="mdl-data-table__cell--non-numeric">@application.applicantName</td>
+                <td class="mdl-data-table__cell--non-numeric">
+                    @if(cityApplications.exists{ app => app._1.id != application.id && (app._1.applicantName == application.applicantName || app._1.applicantEmail.toLowerCase == application.applicantEmail.toLowerCase) }) {
+                        <div id="date-@application.id" class="vertical-align--middle">
+                            @application.applicantName
+                            <i class="icon material-icons icon--light">error</i>
+                        </div>
+                        <div class="mdl-tooltip" data-mdl-for="date-@application.id">
+                            Demande avec le même nom ou email
+                        </div>
+                    } else {
+                        @application.applicantName
+                    }
+                </td>
                 <td class="mdl-data-table__cell--non-numeric">@application.creationDate.toString("dd MMM YYYY", new Locale("fr"))</td>
                 <td class="mdl-data-table__cell--non-numeric" style="@if(application.status == "Défavorable"){ color: red } else { @if(application.status == "Favorable") { color: green }}">@application.status@if(application.status == "En cours") { (Avis: @reviews.length / @application.numberOfReviewNeeded(agents)) } </td>
                 <td class="mdl-data-table__cell--non-numeric">@application._type</td>
@@ -86,6 +99,7 @@
         }
         </tbody>
     </table>
+        }
     }
     @if(agent.instructor || agent.admin) {
         <button class="mdl-button mdl-js-button mdl-button--raised mdl-cell mdl-cell--8-col mdl-cell--2-offset" onclick="document.location = '@routes.ApplicationController.allCSV()'">

@@ -128,3 +128,11 @@ html, body {
 .invisible {
     display: none;
 }
+
+.vertical-align--middle > * {
+    vertical-align: middle;
+}
+
+.icon--light {
+    color: #D8D8D8;
+}
