@@ -1,5 +1,5 @@
 @import models._
-@(applications: List[(Application, List[Review])], agent: Agent, agents: List[Agent])(implicit flash: Flash, webJarAssets: WebJarAssets)
+@(applicationsByYear: List[(Int, List[(Application, List[Review])])], agent: Agent, agents: List[Agent])(implicit flash: Flash, webJarAssets: WebJarAssets)
 @import java.util.Locale
 
 @main(agent)("Toutes les demandes") {
@@ -52,6 +52,8 @@
 }{
     <input class="mdl-cell mdl-cell--12-col" type="search" placeholder="Filtrer les demandes (saisir nom, adresse ou un mot clé contenu dans la demande)" id="search-input" onsearch="onSearch()" oninput="onSearch()"/><br>
     <div class="mdl-cell mdl-cell--12-col pem-container">
+    @for((year, applications) <- applicationsByYear) {
+    <h3>@year</h3>
     @if(agent.instructor || agent.admin) {
          Total : @applications.size / @List("Nouvelle", "En cours", "Favorable", "Défavorable", "Invalide").map(status => s"$status : ${applications.count(_._1.status == status)}").mkString(" / ")
     }
@@ -84,6 +86,7 @@
         }
         </tbody>
     </table>
+    }
     @if(agent.instructor || agent.admin) {
         <button class="mdl-button mdl-js-button mdl-button--raised mdl-cell mdl-cell--8-col mdl-cell--2-offset" onclick="document.location = '@routes.ApplicationController.allCSV()'">
         Télécharger CSV

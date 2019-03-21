@@ -21,7 +21,7 @@ case class Application(id: String,
                        newFiles: List[String] = List(),
                        reviewerAgentIds: List[String] = List()) {
 
-   val applicantName = s"${applicantFirstname.capitalize} ${applicantLastname.capitalize}"
+   val applicantName = s"${applicantFirstname.capitalize} ${applicantLastname.toUpperCase}"
    private def imageFilter(fileName: String) = List(".jpg",".jpeg",".png").exists(fileName.toLowerCase().contains(_))
 
    lazy val files = originalFiles ++ newFiles

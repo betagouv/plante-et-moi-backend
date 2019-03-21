@@ -79,9 +79,11 @@ class ApplicationController @Inject() (ws: WSClient,
   }
 
   def all = loginAction { implicit request =>
-    val responses = projects(request.currentCity)
+    val cityApplications = projects(request.currentCity)
     val agents = agentService.all(request.currentCity)
-    Ok(views.html.allApplications(responses, request.currentAgent, agents))
+    val applicationsGroupByYear = cityApplications.groupBy(_._1.creationDate.getYear).toList.sortBy(_._1).reverse
+
+    Ok(views.html.allApplications(applicationsGroupByYear, request.currentAgent, agents))
   }
 
   def allCSV = loginAction { implicit request =>
