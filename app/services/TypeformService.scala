@@ -158,7 +158,7 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
   private def getApplicationForForm(id: String) = {
     for {
       formResult <- getForm(id, key)
-      answersResult <- getFormAnswer(id, key, true, 200)
+      answersResult <- getFormAnswer(id, key, true, 300)
     } yield (formResult, answersResult) match {
       case (Some(form), Some(result)) =>
         result.items
