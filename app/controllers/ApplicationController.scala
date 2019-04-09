@@ -112,7 +112,7 @@ class ApplicationController @Inject() (ws: WSClient,
     val applicationsWithDecisionToTake = responses.filter { response =>
       response._1.status == "En cours" && response._2.length >= response._1.numberOfReviewNeeded(agents) && agent.finalReview
     }
-    Ok(views.html.myApplications(applicationsToReview, newApplications, applicationsWithDecisionToTake, request.currentAgent))
+    Ok(views.html.myApplications(applicationsToReview, newApplications, applicationsWithDecisionToTake, responses, request.currentAgent))
   }
 
   def show(id: String) = loginAction { implicit request =>
