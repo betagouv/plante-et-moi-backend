@@ -66,6 +66,33 @@ class SettingService @Inject()(dbapi: DBApi, configuration: Configuration) exten
                    |
                    |Si vous avez des questions, n'hésitez pas à nous contacter,
                    |Plante et Moi""".stripMargin
+    ),
+    "FAVORABLE_EMAIL" -> Json.obj(
+      "from" -> "Plante et Moi <noreply@plante-et-moi.fr>",
+      "replyTo" -> "Plante et Moi <administration@plante-et-moi.fr>",
+      "title" -> "Votre demande de végétalisation à reçu une décision favorable !",
+      "body" -> """Bonjour,
+                  |
+                  |Merci de contribuer à la végétalisation !
+                  |
+                  |Votre demande a reçu une décision favorable.
+                  |Vous receverez bientôt plus d'informations sur votre permis.
+                  |
+                  |Si vous avez des questions, n'hésitez pas à nous contacter,
+                  |Plante et Moi""".stripMargin
+    ),
+    "UNFAVORABLE_EMAIL" -> Json.obj(
+      "from" -> "Plante et Moi <noreply@plante-et-moi.fr>",
+      "replyTo" -> "Plante et Moi <administration@plante-et-moi.fr>",
+      "title" -> "Votre demande de végétalisation",
+      "body" -> """Bonjour,
+                  |
+                  |Merci de vouloir contribuer à la végétalisation !
+                  |
+                  |Votre demande n'a pas malheureusement pas reçu une décision favorable.
+                  |
+                  |Vous pouvez nous demander plus d'information à propos de cette demande,
+                  |Plante et Moi""".stripMargin
     )
   )
 

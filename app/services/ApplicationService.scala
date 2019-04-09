@@ -45,7 +45,7 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
 
 
   private val simple: RowParser[Application] = Macro.parser[Application](
-    "id", "city", "status", "applicant_firstname", "applicant_lastname", "applicant_email", "applicant_address", "type", "address", "creation_date", "coordinates", "source", "source_id", "applicant_phone", "fields", "application_imported.files", "application_extra.files", "reviewer_agent_ids"
+    "id", "city", "status", "applicant_firstname", "applicant_lastname", "applicant_email", "applicant_address", "type", "address", "creation_date", "coordinates", "source", "source_id", "applicant_phone", "fields", "application_imported.files", "application_extra.files", "reviewer_agent_ids", "decision_sended_date"
   )
 
   def findByApplicationId(applicationId: String) = db.withConnection { implicit connection =>
@@ -97,7 +97,8 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
     ).on(
       'application_id -> application.id,
       'status -> application.status,
-      'reviewer_agent_ids -> application.reviewerAgentIds.toArray
+      'reviewer_agent_ids -> application.reviewerAgentIds.toArray,
+      'decision_sended -> application.decisionSendedDate
     ).executeUpdate()
   }
 }

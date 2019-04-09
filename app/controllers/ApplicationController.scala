@@ -32,6 +32,7 @@ class ApplicationController @Inject() (ws: WSClient,
                                        fileService: FileService,
                                        typeformService: TypeformService,
                                        notificationsService: NotificationsService,
+                                       emailTemplateService: EmailTemplateService,
                                        implicit val webJarAssets: WebJarAssets) extends Controller {
 
   private val timeZone = DateTimeZone.forID("Europe/Paris")
@@ -105,7 +106,7 @@ class ApplicationController @Inject() (ws: WSClient,
       response._1.status == "En cours" &&
         !response._2.exists { _.agentId == agent.id } &&
         response._1.reviewerAgentIds.contains(agent.id)
-    }
+    }                                                                
     val newApplications = responses.filter { response =>
       response._1.status == "Nouvelle" && agent.instructor
     }
@@ -130,7 +131,13 @@ class ApplicationController @Inject() (ws: WSClient,
                 .map { comment =>
                   comment -> agents.find(_.id == comment.agentId).get
                 }
-          Ok(views.html.application(application._1, agent, reviews, comments, agents))
+          val emailTemplate = application._1.status match {
+            case "Favorable" => emailTemplateService.get(application._1.city, "FAVORABLE_EMAIL")
+            case "Défavorable" => emailTemplateService.get(application._1.city, "UNFAVORABLE_EMAIL")
+            case _ => None
+          }
+
+          Ok(views.html.application(application._1, agent, reviews, comments, emailTemplate, agents))
     }
   }
 
