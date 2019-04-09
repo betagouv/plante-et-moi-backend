@@ -298,13 +298,13 @@ div hr:last-child {
     case (None, Some(template)) => {
         @if(currentAgent.instructor && List("Favorable", "Défavorable").contains(application.status) && application.decisionSendedDate.isEmpty) {
             <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid do-not-print">
-                <form action="<!--- to replace -->" class="mdl-grid mdl-cell mdl-cell--12-col" method="post">
+                <form action="@routes.ApplicationController.sendDecisionEmail(application.id)" class="mdl-grid mdl-cell mdl-cell--12-col" method="post">
                     <h4 class="mdl-cell mdl-cell--12-col">Envoyer la confirmation de la décision (@application.status)</h4>
                     <span class="mdl-cell mdl-cell--12-col"><b>Adresse de destination : </b>@application.applicantEmail </span>
                     <span class="mdl-cell mdl-cell--12-col"><b>Sujet : </b>@template.title </span>
                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell mdl-cell--12-col">
-                        <textarea class="mdl-textfield__input" type="text" rows= "13" id="sample5" style="width: 100%;" name="email">@template.body</textarea>
-                        <label class="mdl-textfield__label" for="sample5">Corp du mail</label>
+                        <textarea class="mdl-textfield__input" type="text" rows= "13" id="body" style="width: 100%;" name="body">@template.body</textarea>
+                        <label class="mdl-textfield__label" for="body">Corp du mail</label>
                     </div>
                     <button class="mdl-button mdl-js-button mdl-button--raised mdl-cell mdl-cell--12-col">
                         Envoyer l'email

@@ -380,4 +380,23 @@ class ApplicationController @Inject() (ws: WSClient,
     )
     mailerClient.send(email)
   }
+
+  case class EmailDecisionData(body: String)
+  val emailDecisionForm = Form(
+    mapping(
+      "body" -> text
+    )(CommentData.apply)(CommentData.unapply)
+  )
+
+  def sendDecisionEmail(applicationId: String) = loginAction { implicit request =>
+    (emailDecisionForm.bindFromRequest.value, applicationById(applicationId, request.currentCity)) match {
+      case (Some(emailDecisionData), Some((application, reviews))) =>
+        // To Do : send email
+        val newApplication = application.copy(decisionSendedDate = Some(DateTime.now(timeZone)))
+        applicationService.update(newApplication)
+        Redirect(routes.ApplicationController.show(applicationId)).flashing("success" -> "Votre email de confirmation a bien été envoyé.")
+      case _ =>
+        BadRequest("Error pour l'ajout du commentaire: la demande n'existe pas ou le contenu du formulaire est incorrect. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
+    }
+  }
 }

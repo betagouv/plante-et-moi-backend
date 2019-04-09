@@ -92,7 +92,19 @@
                     }
                 </td>
                 <td class="mdl-data-table__cell--non-numeric">@application.creationDate.toString("dd MMM YYYY", new Locale("fr"))</td>
-                <td class="mdl-data-table__cell--non-numeric" style="@if(application.status == "Défavorable"){ color: red } else { @if(application.status == "Favorable") { color: green }}">@application.status@if(application.status == "En cours") { (Avis: @reviews.length / @application.numberOfReviewNeeded(agents)) } </td>
+                <td class="mdl-data-table__cell--non-numeric" style="@if(application.status == "Défavorable"){ color: red } else { @if(application.status == "Favorable") { color: green }}">
+                @if(application.decisionSendedDate != None) {
+                    <div id="email-@application.id" class="vertical-align--middle">
+                        @application.status@if(application.status == "En cours") { (Avis: @reviews.length / @application.numberOfReviewNeeded(agents)) }
+                        <i class="icon material-icons icon--light">email</i>
+                    </div>
+                    <div class="mdl-tooltip" data-mdl-for="email-@application.id">
+                        Email de confirmation de demande <br>envoyé le @application.decisionSendedDate.get.toString("dd MMM YYYY", new Locale("fr"))
+                    </div>
+                } else {
+                    @application.status@if(application.status == "En cours") { (Avis: @reviews.length / @application.numberOfReviewNeeded(agents)) }
+                }
+                </td>
                 <td class="mdl-data-table__cell--non-numeric">@application._type</td>
                 <td class="mdl-data-table__cell--non-numeric search-cell"></td>
             </tr>
