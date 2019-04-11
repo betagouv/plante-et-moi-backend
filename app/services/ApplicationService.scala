@@ -88,8 +88,12 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
       'status -> application.status
     ).executeUpdate()
   }
-  def findByCity(city: String) = db.withConnection { implicit connection =>
-    SQL("SELECT * FROM application_imported INNER JOIN application_extra ON (application_imported.id = application_extra.application_id) WHERE city = {city} ORDER BY creation_date DESC").on('city -> city).as(simple.*)
+  def findByCity(city: String, orderedDescending: Boolean = true) = db.withConnection { implicit connection =>
+    val orderString = orderedDescending match {
+      case true => "DESC"
+      case false => "ASC"
+    }
+    SQL(s"SELECT * FROM application_imported INNER JOIN application_extra ON (application_imported.id = application_extra.application_id) WHERE city = {city} ORDER BY creation_date $orderString").on('city -> city).as(simple.*)
   }
 
   def update(application: Application) = db.withConnection { implicit connection =>
