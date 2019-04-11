@@ -115,7 +115,15 @@ class ApplicationController @Inject() (ws: WSClient,
     val applicationsWithDecisionToTake = responses.filter { response =>
       response._1.status == "En cours" && response._2.length >= response._1.numberOfReviewNeeded(agents) && agent.finalReview
     }
-    Ok(views.html.myApplications(applicationsToReview, newApplications, applicationsWithDecisionToTake, responses, order, request.currentAgent)).withSession(request.session  + ("order" -> order))
+    val applicationsWithDecisionToSend = responses.filter(_._1.decisionToSend)
+    Ok(views.html.myApplications(
+      applicationsToReview,
+      newApplications,
+      applicationsWithDecisionToTake,
+      applicationsWithDecisionToSend,
+      responses,
+      order,
+      request.currentAgent)).withSession(request.session  + ("order" -> order))
   }
 
   def show(id: String) = loginAction { implicit request =>

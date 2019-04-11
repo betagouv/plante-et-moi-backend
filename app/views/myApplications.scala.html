@@ -1,7 +1,13 @@
 @import models._
 @import java.util.Locale
 
-@(applicationsToReview: List[(Application, List[Review])], newApplications: List[(Application, List[Review])], applicationsWithDecisionToTake: List[(Application, List[Review])], cityApplications: List[(Application, List[Review])], order: String, agent: Agent)(implicit flash: Flash, webJarAssets: WebJarAssets)
+@(      applicationsToReview: List[(Application, List[Review])],
+        newApplications: List[(Application, List[Review])],
+        applicationsWithDecisionToTake: List[(Application, List[Review])],
+        applicationsWithDecisionToSend: List[(Application, List[Review])],
+        cityApplications: List[(Application, List[Review])],
+        order: String,
+        agent: Agent)(implicit flash: Flash, webJarAssets: WebJarAssets)
 
 @display(applications: List[(Application, List[Review])]) = {
     <table class="mdl-data-table mdl-js-data-table mdl-cell mdl-cell--12-col mdl-shadow--2dp" style="white-space: normal;">
@@ -64,6 +70,12 @@
         <h4 class="mdl-cell mdl-cell--12-col">Décisions à prendre</h4>
         @display(applicationsWithDecisionToTake)
     </div>
+    }
+    @if(!applicationsWithDecisionToSend.isEmpty) {
+        <div class="mdl-cell mdl-cell--12-col mdl-grid--no-spacing">
+            <h4 class="mdl-cell mdl-cell--12-col">Décisions à envoyer</h4>
+            @display(applicationsWithDecisionToSend)
+        </div>
     }
     <div class="mdl-cell mdl-cell--12-col mdl-grid--no-spacing">
     </div>
