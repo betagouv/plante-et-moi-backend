@@ -33,6 +33,7 @@ class ApplicationController @Inject() (ws: WSClient,
                                        typeformService: TypeformService,
                                        notificationsService: NotificationsService,
                                        emailTemplateService: EmailTemplateService,
+                                       emailSentService: EmailSentService,
                                        implicit val webJarAssets: WebJarAssets) extends Controller {
 
   private val timeZone = DateTimeZone.forID("Europe/Paris")
@@ -131,13 +132,15 @@ class ApplicationController @Inject() (ws: WSClient,
                 .map { comment =>
                   comment -> agents.find(_.id == comment.agentId).get
                 }
-          val emailTemplate = application._1.status match {
-            case "Favorable" => emailTemplateService.get(application._1.city, "FAVORABLE_EMAIL")
-            case "Défavorable" => emailTemplateService.get(application._1.city, "UNFAVORABLE_EMAIL")
+          val emailTemplate = (application._1.status match {
+            case "Favorable" => Some("FAVORABLE_EMAIL")
+            case "Défavorable" => Some("UNFAVORABLE_EMAIL")
             case _ => None
-          }
+          }).flatMap(emailTemplateService.get(application._1.city))
 
-          Ok(views.html.application(application._1, agent, reviews, comments, emailTemplate, agents))
+          val emails = emailSentService.findByApplicationId(application._1.id)
+
+          Ok(views.html.application(application._1, agent, reviews, comments, emailTemplate, emails, agents))
     }
   }
 
@@ -385,16 +388,19 @@ class ApplicationController @Inject() (ws: WSClient,
   val emailDecisionForm = Form(
     mapping(
       "body" -> text
-    )(CommentData.apply)(CommentData.unapply)
+    )(EmailDecisionData.apply)(EmailDecisionData.unapply)
   )
 
   def sendDecisionEmail(applicationId: String) = loginAction { implicit request =>
     (emailDecisionForm.bindFromRequest.value, applicationById(applicationId, request.currentCity)) match {
       case (Some(emailDecisionData), Some((application, reviews))) =>
-        // To Do : send email
-        val newApplication = application.copy(decisionSendedDate = Some(DateTime.now(timeZone)))
-        applicationService.update(newApplication)
-        Redirect(routes.ApplicationController.show(applicationId)).flashing("success" -> "Votre email de confirmation a bien été envoyé.")
+        if(notificationsService.sendDecision(application, emailDecisionData.body)) {
+          val newApplication = application.copy(decisionSendedDate = Some(DateTime.now(timeZone)))
+          applicationService.update(newApplication)
+          Redirect(routes.ApplicationController.my()).flashing("success" -> "Votre email de confirmation a bien été envoyé.")
+        } else {
+          Redirect(routes.ApplicationController.show(applicationId)).flashing("error" -> "Votre email de confirmation n'a pas pu être envoyé.")
+        }
       case _ =>
         BadRequest("Error pour l'ajout du commentaire: la demande n'existe pas ou le contenu du formulaire est incorrect. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
     }

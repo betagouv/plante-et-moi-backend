@@ -1,4 +1,4 @@
-@(application: models.Application, currentAgent: Agent, reviews: List[(Review, Agent)], comments: List[(Comment, Agent)], emailTemplate: Option[EmailTemplate], agents: List[Agent])(implicit flash: Flash, webJarAssets: WebJarAssets)
+@(application: models.Application, currentAgent: Agent, reviews: List[(Review, Agent)], comments: List[(Comment, Agent)], emailTemplate: Option[EmailTemplate], emails: List[Email], agents: List[Agent])(implicit flash: Flash, webJarAssets: WebJarAssets)
 @import java.util.Locale
 
 @main(currentAgent)(s"${application.address} (${application._type}) / Statut: ${application.status}")  {
@@ -289,6 +289,17 @@ div hr:last-child {
 </div>
 }
 
+@if(currentAgent.instructor) {
+    <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
+        <h3 class="mdl-cell mdl-cell--12-col">Emails envoyés</h3>
+        @for(email <- emails) {
+            <div class="mdl-cell mdl-cell--12-col">
+                <span style="width: 100%"><b>@email.creationDate.toString("dd MMM YYYY", new Locale("fr")) à @email.sentTo.mkString(", ")</b> @email.subject</span>
+            </div>
+        }
+    </div>
+}
+
 @(application.decisionSendedDate, emailTemplate) match {
     case (Some(decisionSendedDate), _) => {
         <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid do-not-print">
@@ -317,7 +328,6 @@ div hr:last-child {
 
     }
 }
-
 
 @if(currentAgent.instructor && application.status != "Invalide") {
 <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid do-not-print">

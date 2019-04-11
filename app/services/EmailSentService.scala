@@ -33,4 +33,8 @@ class EmailSentService @Inject()(dbapi: DBApi) {
       'reply_to -> email.replyTo
     ).executeUpdate()
   }
+
+  def findByApplicationId(applicationId: String) = db.withConnection { implicit connection =>
+    SQL"""SELECT * FROM email_sent WHERE application_id = $applicationId ORDER BY creation_date ASC""".as(simple.*)
+  }
 }

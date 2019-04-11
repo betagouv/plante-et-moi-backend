@@ -12,7 +12,7 @@ class EmailTemplateService @Inject()(configuration: play.api.Configuration, sett
 
   private implicit val emailTemplateRead = Json.reads[EmailTemplate]
 
-  def get(city: String, id: String) = {
+  def get(city: String)(id: String): Option[EmailTemplate] = {
     settingService.findByKey(city)(id).flatMap(_._2.validate[EmailTemplate].asOpt)
   }
 }
