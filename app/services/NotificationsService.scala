@@ -41,7 +41,7 @@ class NotificationsService @Inject()(system: ActorSystem,
     }
 
     def newApplication(application: Application): Boolean = {
-      emailTemplateService.get(application.city, "RECEPTION_EMAIL").fold {
+      emailTemplateService.get(application.city)("RECEPTION_EMAIL").fold {
         Logger.error(s"No RECEPTION_EMAIL email template for city ${application.city}")
         return false
       } { emailTemplate =>
@@ -167,5 +167,36 @@ class NotificationsService @Inject()(system: ActorSystem,
         Array(s"${agent.name} <${agent.email}>"),
         bodyText = body
       )
+    }
+
+    private def generateDecisionEmail(emailTemplate: EmailTemplate)(application: models.Application): Email = {
+      Email(
+        UUID.randomUUID,
+        application.id,
+        None,
+        application.city,
+        DateTime.now(),
+        "DECISION_SENT_TO_APPLICANT",
+        emailTemplate.title,
+        emailTemplate.from,
+        Array(s"${application.applicantName} <${application.applicantEmail}>"),
+        bodyText = emailTemplate.body,
+        replyTo = emailTemplate.replyTo
+      )
+    }
+
+    def sendDecision(application: Application, body: String): Boolean = {
+      (application.status match {
+        case "Favorable" => Some("FAVORABLE_EMAIL")
+        case "Défavorable" => Some("UNFAVORABLE_EMAIL")
+        case _ => None
+      }).flatMap(emailTemplateService.get(application.city)).fold {
+        Logger.error(s"No Decision Template email template for city ${application.city}")
+        return false
+      } { emailTemplate =>
+        val applicantEmail = generateDecisionEmail(emailTemplate.copy(body = body))(application)
+        sendMail(applicantEmail)
+        return true
+      }
     }
 }

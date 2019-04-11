@@ -1,4 +1,4 @@
-@(application: models.Application, currentAgent: Agent, reviews: List[(Review, Agent)], comments: List[(Comment, Agent)], agents: List[Agent])(implicit flash: Flash, webJarAssets: WebJarAssets)
+@(application: models.Application, currentAgent: Agent, reviews: List[(Review, Agent)], comments: List[(Comment, Agent)], emailTemplate: Option[EmailTemplate], emails: List[Email], agents: List[Agent])(implicit flash: Flash, webJarAssets: WebJarAssets)
 @import java.util.Locale
 
 @main(currentAgent)(s"${application.address} (${application._type}) / Statut: ${application.status}")  {
@@ -288,6 +288,47 @@ div hr:last-child {
     }
 </div>
 }
+
+@if(currentAgent.instructor) {
+    <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
+        <h3 class="mdl-cell mdl-cell--12-col">Emails envoyés</h3>
+        @for(email <- emails) {
+            <div class="mdl-cell mdl-cell--12-col">
+                <span style="width: 100%"><b>@email.creationDate.toString("dd MMM YYYY", new Locale("fr")) à @email.sentTo.mkString(", ")</b> @email.subject</span>
+            </div>
+        }
+    </div>
+}
+
+@(application.decisionSendedDate, emailTemplate) match {
+    case (Some(decisionSendedDate), _) => {
+        <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid do-not-print">
+            <h3 class="mdl-cell mdl-cell--12-col">Email d'information de la décision envoyé le @decisionSendedDate.toString("dd MMM YYYY", new Locale("fr"))</h3>
+        </div>
+    }
+    case (None, Some(template)) => {
+        @if(currentAgent.instructor && List("Favorable", "Défavorable").contains(application.status) && application.decisionSendedDate.isEmpty) {
+            <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid do-not-print">
+                <form action="@routes.ApplicationController.sendDecisionEmail(application.id)" class="mdl-grid mdl-cell mdl-cell--12-col" method="post">
+                    <h4 class="mdl-cell mdl-cell--12-col">Envoyer la confirmation de la décision (@application.status)</h4>
+                    <span class="mdl-cell mdl-cell--12-col"><b>Adresse de destination : </b>@application.applicantEmail </span>
+                    <span class="mdl-cell mdl-cell--12-col"><b>Sujet : </b>@template.title </span>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell mdl-cell--12-col">
+                        <textarea class="mdl-textfield__input" type="text" rows= "13" id="body" style="width: 100%;" name="body">@template.body</textarea>
+                        <label class="mdl-textfield__label" for="body">Corp du mail</label>
+                    </div>
+                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-cell mdl-cell--12-col">
+                        Envoyer l'email
+                    </button>
+                </form>
+            </div>
+        }
+    }
+    case _ => {
+
+    }
+}
+
 @if(currentAgent.instructor && application.status != "Invalide") {
 <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid do-not-print">
     <h3 class="mdl-cell mdl-cell--12-col">Invalider la demande</h3>
