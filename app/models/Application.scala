@@ -38,4 +38,6 @@ case class Application(id: String,
       val agentsString = reviewerAgents(agents).map(a => s"${a.name} (${a.qualite.capitalize}").mkString(" ")
       s"""${applicantFirstname.filterNot(stripChars contains _)} ${applicantLastname.filterNot(stripChars contains _)} ${applicantEmail.filterNot(stripChars contains _)} ${applicantAddress.getOrElse("").filterNot(stripChars contains _)} ${_type.filterNot(stripChars contains _)} ${fields.values.map(_.filterNot(stripChars contains _)).mkString(" ")} $status $agentsString"""
    }
+
+   lazy val decisionToSend = List("Favorable", "Défavorable").contains(status) && decisionSendedDate.isEmpty && creationDate.isAfter(1546297200000L)  // after 01/01/2019
 }
