@@ -36,7 +36,7 @@ class ApplicationController @Inject() (ws: WSClient,
 
   private val timeZone = DateTimeZone.forID("Europe/Paris")
 
-  def projects(city: String) = applicationService.findByCity(city).map { application =>
+  def projects(city: String, orderedDescending: Boolean = true) = applicationService.findByCity(city, orderedDescending).map { application =>
       (application, reviewService.findByApplicationId(application.id))
     }
 
@@ -99,7 +99,8 @@ class ApplicationController @Inject() (ws: WSClient,
 
   def my = loginAction { implicit request =>
     val agent = request.currentAgent
-    val responses = projects(request.currentCity)
+    val order = request.getQueryString("order").map(_.toString).orElse(request.session.get("order")).getOrElse("DESC")
+    val responses = projects(request.currentCity, order == "DESC")
     val agents = agentService.all(request.currentCity)
     val applicationsToReview = responses.filter { response =>
       response._1.status == "En cours" &&
@@ -112,7 +113,7 @@ class ApplicationController @Inject() (ws: WSClient,
     val applicationsWithDecisionToTake = responses.filter { response =>
       response._1.status == "En cours" && response._2.length >= response._1.numberOfReviewNeeded(agents) && agent.finalReview
     }
-    Ok(views.html.myApplications(applicationsToReview, newApplications, applicationsWithDecisionToTake, responses, request.currentAgent))
+    Ok(views.html.myApplications(applicationsToReview, newApplications, applicationsWithDecisionToTake, responses, order, request.currentAgent)).withSession(request.session  + ("order" -> order))
   }
 
   def show(id: String) = loginAction { implicit request =>
