@@ -1,8 +1,8 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-
 import actions.LoginAction
+import org.webjars.play.WebJarsUtil
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.libs.json.Json
@@ -12,8 +12,7 @@ import play.api.data.Forms._
 
 @Singleton
 class SettingController @Inject()(settingService: SettingService,
-                                  loginAction: LoginAction,
-                                  implicit val webJarAssets: WebJarAssets) extends Controller {
+                                  loginAction: LoginAction)(implicit val webJarsUtil: WebJarsUtil) extends InjectedController  {
   def all = loginAction { implicit request =>
     val settings = settingService.all(request.currentCity).mapValues(Json.prettyPrint)
     Ok(views.html.allSettings(settings, request.currentAgent))

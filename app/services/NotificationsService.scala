@@ -33,7 +33,7 @@ class NotificationsService @Inject()(system: ActorSystem,
        email.sentFrom,
        email.sentTo,
        bodyText = Some(email.bodyText),
-       replyTo = email.replyTo
+       replyTo = email.replyTo.toList
       )
       mailerClient.send(playEmail)
       Logger.info(s"Email sent to ${email.sentTo.mkString(", ")}")
