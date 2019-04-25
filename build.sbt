@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "org.playframework.anorm" %% "anorm" % "2.6.2",
   "com.typesafe.play" %% "play-mailer" % "7.0.0" ,
   "org.playframework.anorm" %% "anorm" % "2.6.2",
-  "com.typesafe.play" %% "play-json-joda" % "2.6.13",
+  "com.typesafe.play" %% "play-json-joda" % "2.7.3",
   "com.typesafe.play" %% "play-mailer-guice" % "7.0.0"
 )
 // Crash
