@@ -64,10 +64,11 @@ class ApplicationController @Inject() (ws: WSClient,
   }
 
 
+  private lazy val filesCookie = configuration.underlying.getString("typeform.cookieForFiles")
   private def getImageFromTypeform(url: String): Future[Result] = {
     var request = ws.url(url.replaceFirst(":443", ""))
     if(url.contains("typeform.com")) {
-      request = request.withHeaders("authorization" -> s"bearer ${typeformService.key}")
+      request = request.withCookies(DefaultWSCookie("PHPSESSID", filesCookie))
     }
     request.get().map { fileResult =>
       if(fileResult.status >= 300) {
