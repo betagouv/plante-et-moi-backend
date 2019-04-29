@@ -2,8 +2,8 @@ package controllers
 
 import java.nio.file.Files
 import java.util.Locale
-import javax.inject._
 
+import javax.inject._
 import play.api.mvc._
 import play.api.libs.ws._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -14,6 +14,7 @@ import play.api.data.Forms._
 import play.api.libs.mailer.MailerClient
 import actions.{LoginAction, RequestWithAgent}
 import formats.FormRequireBoolean
+import org.webjars.play.WebJarsUtil
 
 import scala.concurrent.Future
 import play.api.libs.mailer._
@@ -33,8 +34,7 @@ class ApplicationController @Inject() (ws: WSClient,
                                        typeformService: TypeformService,
                                        notificationsService: NotificationsService,
                                        emailTemplateService: EmailTemplateService,
-                                       emailSentService: EmailSentService,
-                                       implicit val webJarAssets: WebJarAssets) extends Controller {
+                                       emailSentService: EmailSentService)(implicit val webJarsUtil: WebJarsUtil) extends InjectedController  {
 
   private val timeZone = DateTimeZone.forID("Europe/Paris")
 

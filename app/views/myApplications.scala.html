@@ -7,7 +7,7 @@
         applicationsWithDecisionToSend: List[(Application, List[Review])],
         cityApplications: List[(Application, List[Review])],
         order: String,
-        agent: Agent)(implicit flash: Flash, webJarAssets: WebJarAssets)
+        agent: Agent)(implicit flash: Flash, webJarsUtil: org.webjars.play.WebJarsUtil)
 
 @display(applications: List[(Application, List[Review])]) = {
     <table class="mdl-data-table mdl-js-data-table mdl-cell mdl-cell--12-col mdl-shadow--2dp" style="white-space: normal;">

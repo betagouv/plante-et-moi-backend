@@ -1,18 +1,19 @@
 package actions
 
 import javax.inject.{Inject, Singleton}
-
 import controllers.routes
 import models._
 import play.api.mvc._
 import play.api.mvc.Results.{Redirect, _}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class RequestWithAgent[A](val currentAgent: Agent, val currentCity: String, request: Request[A]) extends WrappedRequest[A](request)
 
 @Singleton
-class LoginAction @Inject()(agentService: AgentService) extends ActionBuilder[RequestWithAgent] with ActionRefiner[Request, RequestWithAgent] {
+class LoginAction @Inject()(val parser: BodyParsers.Default, agentService: AgentService)(implicit ec: ExecutionContext) extends ActionBuilder[RequestWithAgent, AnyContent] with ActionRefiner[Request, RequestWithAgent] {
+  def executionContext = ec
+
   private def getCity(request: RequestHeader) =
     request.getQueryString("city").orElse(request.session.get("city")).getOrElse("arles").toLowerCase()
 

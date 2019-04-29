@@ -9,7 +9,7 @@ import play.api.mvc._
  * application's home page.
  */
 @Singleton
-class HomeController @Inject() extends Controller {
+class HomeController @Inject() extends InjectedController  {
 
   def index = Action { implicit request =>
     Redirect(routes.ApplicationController.all())

@@ -1,5 +1,5 @@
 @import models._
-@(cityApplications: List[(Application, List[Review])], agent: Agent, agents: List[Agent])(implicit flash: Flash, webJarAssets: WebJarAssets)
+@(cityApplications: List[(Application, List[Review])], agent: Agent, agents: List[Agent])(implicit flash: Flash, webJarsUtil: org.webjars.play.WebJarsUtil)
 @import java.util.Locale
 
 @main(agent)("Toutes les demandes") {
