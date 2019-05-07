@@ -5,22 +5,34 @@ import org.joda.time.DateTime
 case class Application(id: String,
                        city: String,
                        status: String,
-                       applicantFirstname: String,
-                       applicantLastname: String,
-                       applicantEmail: String,
-                       applicantAddress: Option[String] = None,
+                       sourceApplicantFirstname: String,
+                       sourceApplicantLastname: String,
+                       sourceApplicantEmail: String,
+                       sourceApplicantAddress: Option[String] = None,
                        _type: String,
                        address: String,
                        creationDate: DateTime,
                        coordinates: Coordinates,
                        source: String,
                        sourceId: String,
-                       applicantPhone: Option[String] = None,
+                       sourceApplicantPhone: Option[String] = None,
                        fields: Map[String, String] = Map(),
                        originalFiles: List[String] = List(),
                        newFiles: List[String] = List(),
                        reviewerAgentIds: List[String] = List(),
-                       decisionSendedDate: Option[DateTime] = None) {
+                       decisionSendedDate: Option[DateTime] = None,
+                       newApplicantFirstname: Option[String] = None,
+                       newApplicantLastname: Option[String] = None,
+                       newApplicantEmail: Option[String] = None,
+                       newApplicantAddress: Option[String] = None,
+                       newApplicantPhone: Option[String] = None
+                      ) {
+
+   lazy val applicantFirstname = newApplicantFirstname.getOrElse(sourceApplicantFirstname)
+   lazy val applicantLastname = newApplicantLastname.getOrElse(sourceApplicantLastname)
+   lazy val applicantEmail = newApplicantEmail.getOrElse(sourceApplicantEmail)
+   lazy val applicantAddress = newApplicantAddress.orElse(sourceApplicantAddress)
+   lazy val applicantPhone = newApplicantPhone.orElse(sourceApplicantPhone)
 
    val applicantName = s"${applicantFirstname.capitalize} ${applicantLastname.toUpperCase}"
    private def imageFilter(fileName: String) = List(".jpg",".jpeg",".png").exists(fileName.toLowerCase().contains(_))

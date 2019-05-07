@@ -1,7 +1,6 @@
 package services
 
 import javax.inject.Inject
-
 import anorm.Column._
 import anorm.{Macro, MetaDataItem, RowParser, SQL, TypeDoesNotMatch}
 import models.{Application, Coordinates}
@@ -9,6 +8,7 @@ import play.api.db.DBApi
 import play.api.libs.json._
 import anorm._
 import anorm.JodaParameterMetaData._
+import models.Forms.ApplicationEdit
 
 @javax.inject.Singleton
 class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoordinate {
@@ -45,7 +45,30 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
 
 
   private val simple: RowParser[Application] = Macro.parser[Application](
-    "id", "city", "status", "applicant_firstname", "applicant_lastname", "applicant_email", "applicant_address", "type", "address", "creation_date", "coordinates", "source", "source_id", "applicant_phone", "fields", "application_imported.files", "application_extra.files", "reviewer_agent_ids", "decision_sended_date"
+    "id",
+    "city",
+    "status",
+    "application_imported.applicant_firstname",
+    "application_imported.applicant_lastname",
+    "application_imported.applicant_email",
+    "application_imported.applicant_address",
+    "type",
+    "address",
+    "creation_date",
+    "coordinates",
+    "source",
+    "source_id",
+    "applicant_phone",
+    "fields",
+    "application_imported.files",
+    "application_extra.files",
+    "reviewer_agent_ids",
+    "decision_sended_date",
+    "application_extra.applicant_firstname",
+    "application_extra.applicant_lastname",
+    "application_extra.applicant_email",
+    "application_extra.applicant_address",
+    "application_extra.applicant_phone"
   )
 
   def findByApplicationId(applicationId: String) = db.withConnection { implicit connection =>
@@ -97,12 +120,19 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
   }
 
   def update(application: Application) = db.withConnection { implicit connection =>
-    SQL("UPDATE application_extra SET status = {status}, reviewer_agent_ids = {reviewer_agent_ids}, decision_sended_date = {decision_sended_date} WHERE application_id = {application_id}"
-    ).on(
-      'application_id -> application.id,
-      'status -> application.status,
-      'reviewer_agent_ids -> application.reviewerAgentIds.toArray,
-      'decision_sended_date -> application.decisionSendedDate
-    ).executeUpdate()
+    SQL"""UPDATE application_extra SET
+            status = ${application.status},
+            reviewer_agent_ids = ${application.reviewerAgentIds}::[],
+            decision_sended_date = ${application.decisionSendedDate}
+          WHERE application_id = ${application.id}
+    """.executeUpdate()
+  }
+
+
+  def update(id: String, applicationEdit: ApplicationEdit) = db.withConnection { implicit connection =>
+    SQL"""UPDATE application_extra SET
+            applicant_email = ${applicationEdit.applicantEmail}
+          WHERE application_id = ${id}
+    """.executeUpdate() == 1
   }
 }

@@ -14,6 +14,7 @@ import play.api.data.Forms._
 import play.api.libs.mailer.MailerClient
 import actions.{LoginAction, RequestWithAgent}
 import formats.FormRequireBoolean
+import models.Forms.ApplicationEdit
 import org.webjars.play.WebJarsUtil
 
 import scala.concurrent.Future
@@ -34,7 +35,7 @@ class ApplicationController @Inject() (ws: WSClient,
                                        typeformService: TypeformService,
                                        notificationsService: NotificationsService,
                                        emailTemplateService: EmailTemplateService,
-                                       emailSentService: EmailSentService)(implicit val webJarsUtil: WebJarsUtil) extends InjectedController  {
+                                       emailSentService: EmailSentService)(implicit val webJarsUtil: WebJarsUtil) extends InjectedController with play.api.i18n.I18nSupport {
 
   private val timeZone = DateTimeZone.forID("Europe/Paris")
 
@@ -127,6 +128,12 @@ class ApplicationController @Inject() (ws: WSClient,
       request.currentAgent)).withSession(request.session  + ("order" -> order))
   }
 
+  val applicationEditForm = Form(
+    mapping(
+      "applicantEmail" -> email
+    )(ApplicationEdit.apply)(ApplicationEdit.unapply)
+  )
+
   def show(id: String) = loginAction { implicit request =>
     val agent = request.currentAgent
     applicationById(id, request.currentCity) match {
@@ -149,8 +156,48 @@ class ApplicationController @Inject() (ws: WSClient,
           }).flatMap(emailTemplateService.get(application._1.city))
 
           val emails = emailSentService.findByApplicationId(application._1.id)
+          val form = applicationEditForm.fill(ApplicationEdit.fromApplication(application._1))
 
-          Ok(views.html.application(application._1, agent, reviews, comments, emailTemplate, emails, agents))
+          Ok(views.html.application(application._1, agent, reviews, comments, emailTemplate, emails, agents, form))
+    }
+  }
+
+  def edit(id: String) = loginAction { implicit request =>
+    val agent = request.currentAgent
+    applicationById(id, request.currentCity) match {
+      case None =>
+        NotFound("")
+      case Some(application) =>
+
+        applicationEditForm.bindFromRequest().fold(
+          formWithErrors => {
+            val agents = agentService.all(request.currentCity)
+            val reviews = reviewService.findByApplicationId(id)
+              .map { review =>
+                review -> agents.find(_.id == review.agentId).get
+              }
+            val comments = commentService.findByApplicationId(id)
+              .map { comment =>
+                comment -> agents.find(_.id == comment.agentId).get
+              }
+            val emailTemplate = (application._1.status match {
+              case "Favorable" => Some("FAVORABLE_EMAIL")
+              case "Défavorable" => Some("UNFAVORABLE_EMAIL")
+              case _ => None
+            }).flatMap(emailTemplateService.get(application._1.city))
+
+            val emails = emailSentService.findByApplicationId(application._1.id)
+
+            Ok(views.html.application(application._1, agent, reviews, comments, emailTemplate, emails, agents, formWithErrors))
+            
+          },
+          applicationEdit => {
+            if(applicationService.update(id, applicationEdit)) {
+              Redirect(routes.ApplicationController.show(id)).flashing("success" -> "Votre modification a bien été pris en compte.")
+            } else {
+              Redirect(routes.ApplicationController.show(id)).flashing("error" -> "Votre modification n'a pas été pris en compte :(")
+            }
+        })
     }
   }
 
