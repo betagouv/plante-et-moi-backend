@@ -374,7 +374,7 @@ class ApplicationController @Inject() (ws: WSClient,
       case (Some(askReviewData), Some((application, _))) =>
 
         val selectedAgents = agentService.all(request.currentCity).filter { agent => askReviewData.agentIds.contains(agent.id) }
-        selectedAgents.filter { agent => application.reviewerAgentIds.contains(agent.id) }.foreach(sendRequestReviewEmailToAgent(application, request))
+        selectedAgents.filter { agent => !application.reviewerAgentIds.contains(agent.id) }.foreach(sendRequestReviewEmailToAgent(application, request))
 
         val newApplication = application.copy(status = "En cours", reviewerAgentIds = selectedAgents.map(_.id))
         applicationService.update(newApplication)
