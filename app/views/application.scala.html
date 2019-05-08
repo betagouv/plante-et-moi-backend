@@ -180,7 +180,7 @@ div hr:last-child {
 
 <div class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
     @if(currentAgent.instructor) {
-        <h3 class="mdl-cell mdl-cell--12-col">Avis des services</h3>
+        <h3 class="mdl-cell mdl-cell--12-col"> @if(application.status == "Nouvelle" ){ Demander l'avis des agents } else { Modifier les agents qui laissent leurs avis} </h3>
         <form action='@routes.ApplicationController.askReview(application.id)' class="mdl-cell mdl-cell--10-col mdl-cell--1-offset-desktop mdl-grid do-not-print" method="post" onsubmit="disableButton('application-complete');disableButton('application-no-reviews');">
             <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp mdl-cell mdl-cell--10-col mdl-cell--1-offset mdl-cell--12-col--phone mdl-cell--0-offset--phone">
                 <thead>
@@ -206,7 +206,8 @@ div hr:last-child {
                 }
                 </tbody>
             </table>
-            <button id="application-complete" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-cell mdl-cell--10-col mdl-cell--1-offset mdl-cell--12-col--phone mdl-cell--0-offset--phone">Sauvegarder</button>
+            <button id="application-complete" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-cell mdl-cell--10-col mdl-cell--1-offset mdl-cell--12-col--phone mdl-cell--0-offset--phone">
+            @if(application.status == "Nouvelle" ){ Demander l'avis aux agents sélectionnés } else { Modifier les agents qui laissent leur avis } </button>
         </form>
         @if(application.status == "Nouvelle") {
             <form action='@routes.ApplicationController.askReview(application.id)' class="mdl-cell mdl-cell--10-col mdl-cell--1-offset-desktop mdl-grid do-not-print" method="post" onsubmit="disableButton('application-complete');
