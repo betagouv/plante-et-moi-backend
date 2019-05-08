@@ -136,3 +136,8 @@ html, body {
 .icon--light {
     color: #D8D8D8;
 }
+
+.mdl-card__supporting-text {
+    width: 100% !important;
+    box-sizing: border-box;
+}

@@ -11,6 +11,7 @@ GET     /mes-demandes                                   controllers.ApplicationC
 GET     /carte-des-projets                              controllers.ApplicationController.map
 GET     /toutes-les-demandes/:id                        controllers.ApplicationController.show(id: String)
 GET     /villes/:newCity                                controllers.ApplicationController.changeCity(newCity: String)
+POST    /toutes-les-demandes/:applicationId             controllers.ApplicationController.edit(applicationId: String)
 POST    /toutes-les-demandes/:applicationId/envoyer_decision     controllers.ApplicationController.sendDecisionEmail(applicationId: String)
 POST    /toutes-les-demandes/:applicationId/reviews     controllers.ApplicationController.addReview(applicationId: String)
 POST    /toutes-les-demandes/:applicationId/comments     controllers.ApplicationController.addComment(applicationId: String)

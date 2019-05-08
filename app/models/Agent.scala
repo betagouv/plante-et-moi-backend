@@ -22,7 +22,7 @@ case class Agent(id: String,
 
 @javax.inject.Singleton
 class AgentService @Inject()(configuration: play.api.Configuration, settingService: SettingService) {
-  private lazy val cryptoSecret = configuration.underlying.getString("play.crypto.secret")
+  private lazy val cryptoSecret = configuration.underlying.getString("play.http.secret.key")
 
   private implicit def resultReads(city: String): Reads[Agent] = {
     JsPath.json.update(
