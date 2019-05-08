@@ -122,7 +122,7 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
   def update(application: Application) = db.withConnection { implicit connection =>
     SQL"""UPDATE application_extra SET
             status = ${application.status},
-            reviewer_agent_ids = ${application.reviewerAgentIds}::[],
+            reviewer_agent_ids = array[${application.reviewerAgentIds}]::text[],
             decision_sended_date = ${application.decisionSendedDate}
           WHERE application_id = ${application.id}
     """.executeUpdate()
