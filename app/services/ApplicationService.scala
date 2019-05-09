@@ -58,7 +58,7 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
     "coordinates",
     "source",
     "source_id",
-    "applicant_phone",
+    "application_imported.applicant_phone",
     "fields",
     "application_imported.files",
     "application_extra.files",
