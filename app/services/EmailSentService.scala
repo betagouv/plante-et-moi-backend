@@ -37,4 +37,9 @@ class EmailSentService @Inject()(dbapi: DBApi) {
   def findByApplicationId(applicationId: String) = db.withConnection { implicit connection =>
     SQL"""SELECT * FROM email_sent WHERE application_id = $applicationId ORDER BY creation_date ASC""".as(simple.*)
   }
+
+  def findBySentTo(sentToEmail: String, emailType: String) = db.withConnection { implicit connection =>
+    val regex = s"%<$sentToEmail>%"
+    SQL"""SELECT * FROM email_sent WHERE array_to_string(sent_to, ',') like $regex AND type = $emailType""".as(simple.*)
+  }
 }

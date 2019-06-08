@@ -7,7 +7,7 @@ import javax.inject._
 import play.api.mvc._
 import play.api.libs.ws._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import models._
+import models.{Email, _}
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.data._
 import play.api.data.Forms._
@@ -77,7 +77,7 @@ class ApplicationController @Inject() (ws: WSClient,
       } else {
         val contentType = fileResult.header("Content-Type").getOrElse("text/plain")
         val filename = url.replace("/download", "").split('/').last
-        Ok(fileResult.bodyAsBytes).withHeaders("Content-Disposition" -> s"attachment; filename=$filename").as(contentType)
+        Ok(fileResult.bodyAsBytes).withHeaders("Content-Disposition" -> s"""attachment; filename="$filename"""").as(contentType)
       }
     }
   }
@@ -193,6 +193,10 @@ class ApplicationController @Inject() (ws: WSClient,
           },
           applicationEdit => {
             if(applicationService.update(id, applicationEdit)) {
+              val emailSent = emailSentService.findBySentTo(applicationEdit.applicantEmail, Email.Type.NEW_APPLICATION_APPLICANT)
+              if(emailSent.isEmpty) {
+                 notificationsService.newApplication(application._1, notifyInstructors = false)
+              }
               Redirect(routes.ApplicationController.show(id)).flashing("success" -> "Votre modification a bien été pris en compte.")
             } else {
               Redirect(routes.ApplicationController.show(id)).flashing("error" -> "Votre modification n'a pas été pris en compte :(")

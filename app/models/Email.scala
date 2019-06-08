@@ -13,3 +13,9 @@ case class Email(id: String,
                  sentTo: Array[String],
                  bodyText: String,
                  replyTo: Option[String] = None)
+
+object Email {
+  object Type {
+    val NEW_APPLICATION_APPLICANT = "NEW_APPLICATION_APPLICANT"
+  }
+}

@@ -40,7 +40,7 @@ class NotificationsService @Inject()(system: ActorSystem,
       emailSentService.insert(email)
     }
 
-    def newApplication(application: Application): Boolean = {
+    def newApplication(application: Application, notifyInstructors: Boolean = true): Boolean = {
       emailTemplateService.get(application.city)("RECEPTION_EMAIL").fold {
         Logger.error(s"No RECEPTION_EMAIL email template for city ${application.city}")
         return false
@@ -51,7 +51,9 @@ class NotificationsService @Inject()(system: ActorSystem,
 
         sendMail(applicantEmail)
 
-        instructorEmails.foreach(sendMail)
+        if(notifyInstructors) {
+          instructorEmails.foreach(sendMail)
+        }
         return true
       }
     }
@@ -128,7 +130,7 @@ class NotificationsService @Inject()(system: ActorSystem,
         None,
         application.city,
         DateTime.now(),
-        "NEW_APPLICATION_APPLICANT",
+        Email.Type.NEW_APPLICATION_APPLICANT,
         emailTemplate.title,
         emailTemplate.from,
         Array(s"${application.applicantName} <${application.applicantEmail}>"),
