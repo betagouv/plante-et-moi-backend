@@ -192,10 +192,11 @@ class ApplicationController @Inject() (ws: WSClient,
             
           },
           applicationEdit => {
+            val newApplication = application._1.copy(newApplicantEmail = Some(applicationEdit.applicantEmail))
             if(applicationService.update(id, applicationEdit)) {
               val emailSent = emailSentService.findBySentTo(applicationEdit.applicantEmail, Email.Type.NEW_APPLICATION_APPLICANT)
               if(emailSent.isEmpty) {
-                 notificationsService.newApplication(application._1, notifyInstructors = false)
+                 notificationsService.newApplication(newApplication, notifyInstructors = false)
               }
               Redirect(routes.ApplicationController.show(id)).flashing("success" -> "Votre modification a bien été pris en compte.")
             } else {
