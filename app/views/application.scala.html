@@ -83,7 +83,7 @@ div hr:last-child {
     </tr>
     <tr>
         <td class="mdl-data-table__cell--non-numeric application__key">Nom du demandeur</td>
-        <td class="mdl-data-table__cell--non-numeric application__value">@application.applicantName</td>
+        <td class="mdl-data-table__cell--non-numeric application__value">@application.applicantName  @if(application.newApplicantFirstname.isDefined || application.newApplicantLastname.isDefined){ ( <s>@application.sourceApplicantName</s> ) }</td>
     </tr>
     <tr>
         <td class="mdl-data-table__cell--non-numeric application__key">Courriel du demandeur</td>
@@ -95,11 +95,11 @@ div hr:last-child {
     </tr>
     <tr>
         <td class="mdl-data-table__cell--non-numeric application__key">Adresse du demandeur</td>
-        <td class="mdl-data-table__cell--non-numeric application__value">@application.applicantAddress</td>
+        <td class="mdl-data-table__cell--non-numeric application__value">@application.applicantAddress @if(application.newApplicantAddress.isDefined){ ( <s>@application.sourceApplicantAddress</s> ) }</td>
     </tr>
     <tr>
         <td class="mdl-data-table__cell--non-numeric application__key">Téléphone du demandeur</td>
-        <td class="mdl-data-table__cell--non-numeric application__value">@application.applicantPhone</td>
+        <td class="mdl-data-table__cell--non-numeric application__value">@application.applicantPhone @if(application.newApplicantPhone.isDefined){ ( <s>@application.sourceApplicantPhone</s> ) }</td>
     </tr>
     <tr>
         <td class="mdl-data-table__cell--non-numeric application__key">Avancement</td>

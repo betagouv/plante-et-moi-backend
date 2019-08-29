@@ -20,6 +20,10 @@ POST    /toutes-les-demandes/:applicationId/status      controllers.ApplicationC
 GET    /toutes-les-demandes/:applicationId/invalidate      controllers.ApplicationController.invalidate(applicationId: String)
 POST    /toutes-les-demandes/:applicationId/reviewersAgent           controllers.ApplicationController.askReview(applicationId: String)
 
+GET      /importation                                   controllers.ApplicationController.importForm()
+POST     /importation                                   controllers.ApplicationController.importFormPost()
+
+
 GET     /image                                          controllers.ApplicationController.getImage(url: String)
 GET     /login                                          controllers.ApplicationController.getLogin()
 POST    /login                                          controllers.ApplicationController.postLogin()

@@ -1,0 +1,20 @@
+@import models._
+@import java.util.Locale
+@import models.Forms._
+
+@(applicationsChangesForm: Form[(String,Boolean)], agent: Agent)(implicit flash: Flash, webJarsUtil: org.webjars.play.WebJarsUtil, messagesProvider: MessagesProvider)
+
+@main(agent)("Importer des modifications par CSV")  {
+
+}{
+    @helper.form(action = routes.ApplicationController.importFormPost(), 'class -> "mdl-cell mdl-cell--12-col mdl-grid") {
+        <h2 class="mdl-cell mdl-cell--12-col">Importer un contenu CSV (Séparé par des ; )</h2>
+        @helper.input(applicationsChangesForm("csv"), 'class -> "mdl-textfield--floating-label mdl-cell mdl-cell--12-col", 'label -> "Contenu du CSV") { (id, name, value, args) =>
+            <textarea class="mdl-textfield__input mdl-color--white" type="text" rows= "20" style="width: 100%;" name="@name" id="@id" @toHtmlArgs(args)>@value</textarea>
+        }
+
+        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-cell mdl-cell--10-col mdl-cell--1-offset">
+            Prévisualiser l'importation
+        </button>
+    }
+}

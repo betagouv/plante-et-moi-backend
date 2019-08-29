@@ -1,0 +1,165 @@
+@import models._
+@import java.util.Locale
+@import models.Forms._
+
+@(applicationsImportedInDBIds: List[(Application, Application)], applicationsToCreate: List[Application], applicationsNotImported: List[Map[String, String]], csvText: String, agent: Agent)(implicit flash: Flash, webJarsUtil: org.webjars.play.WebJarsUtil, messagesProvider: MessagesProvider)
+
+@main(agent)("Importer des modifications par CSV")  {
+ <style>
+    del {
+        text-decoration: line-through;
+        background-color: #fbb;
+        color: #555;
+    }
+
+    ins {
+        text-decoration: none;
+        background-color: #d4fcbc;
+    }
+ </style>
+}{
+    @helper.form(action = routes.ApplicationController.importFormPost(), 'class -> "mdl-cell mdl-cell--12-col mdl-grid") {
+        <div  class="mdl-cell mdl-cell--12-col">
+            <h2 class="mdl-cell mdl-cell--12-col">Demandes reconnues</h2>
+            <table class="mdl-data-table mdl-js-data-table pem-table mdl-shadow--2dp" style="white-space: normal;">
+                <thead>
+                    <tr>
+                        <th class="mdl-data-table__cell--non-numeric">Id</th>
+                        <th class="mdl-data-table__cell--non-numeric">Adresse Projet</th>
+                        <th class="mdl-data-table__cell--non-numeric">Etat</th>
+                        <th class="mdl-data-table__cell--non-numeric">Nom Demandeur</th>
+                        <th class="mdl-data-table__cell--non-numeric">Prénom Demandeur</th>
+                        <th class="mdl-data-table__cell--non-numeric">Email Demandeur</th>
+                        <th class="mdl-data-table__cell--non-numeric">Adresse Demandeur</th>
+                        <th class="mdl-data-table__cell--non-numeric">Téléphone Demandeur</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for((oldApplication, newApplication) <- applicationsImportedInDBIds) {
+                    <tr>
+                        <td class="mdl-data-table__cell--non-numeric">
+                            @newApplication.id
+                        </td>
+                        <td class="mdl-data-table__cell--non-numeric">
+                            @if(oldApplication.address != newApplication.address) {
+                            <del>@oldApplication.address</del> ->
+                            }
+                            @newApplication.address
+                        </td>
+                        <td class="mdl-data-table__cell--non-numeric">
+                            @if(!List("Favorable", "Défavorable").contains(newApplication.status) && oldApplication.status != newApplication.status) {
+                                @oldApplication.status (Gardé) <del>@newApplication.status (Invalide)</del>
+                            } else {
+                                @if(oldApplication.status != newApplication.status) {
+                                    <del>@oldApplication.status</del> ->
+                                }
+                                @newApplication.status
+                            }
+                        </td>
+                        <td class="mdl-data-table__cell--non-numeric">
+                            @if(oldApplication.applicantLastname != newApplication.applicantLastname) {
+                            <del>@oldApplication.applicantLastname</del> ->
+                            }
+                            @newApplication.applicantLastname
+                        </td>
+                        <td class="mdl-data-table__cell--non-numeric">
+                            @if(oldApplication.applicantFirstname != newApplication.applicantFirstname) {
+                            <del>@oldApplication.applicantFirstname</del> ->
+                            }
+                            @newApplication.applicantFirstname
+                        </td>
+                        <td class="mdl-data-table__cell--non-numeric">
+                            @if(oldApplication.applicantEmail != newApplication.applicantEmail) {
+                            <del>@oldApplication.applicantEmail</del> ->
+                            }
+                            @newApplication.applicantEmail
+                        </td>
+                        <td class="mdl-data-table__cell--non-numeric">
+                            @if(oldApplication.applicantAddress != newApplication.applicantAddress) {
+                            <del>@oldApplication.applicantAddress</del> ->
+                            }
+                            @newApplication.applicantAddress
+                        </td>
+                        <td class="mdl-data-table__cell--non-numeric">
+                            @if(oldApplication.applicantPhone != newApplication.applicantPhone) {
+                            <del>@oldApplication.applicantPhone</del> ->
+                            }
+                            @newApplication.applicantPhone
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        <textarea name="csv" style="display:none;">@csvText</textarea>
+        <button name="acceptModification" value="true" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-cell mdl-cell--10-col mdl-cell--1-offset">
+            Valider les modifications
+        </button>
+
+        @if(applicationsToCreate.nonEmpty || applicationsNotImported.nonEmpty) {
+            <div class="mdl-cell mdl-cell--12-col">
+                <h2>Erreurs dans l'importation</h2>
+            </div>
+        }
+        @if(applicationsToCreate.nonEmpty) {
+            <div class="mdl-cell mdl-cell--12-col">
+                <h3 class="mdl-cell mdl-cell--12-col">Demandes qui n'existent pas dans la base de donnée<h3>
+                <h4>(L'Id est inconnu)</h4>
+                <table class="mdl-data-table mdl-js-data-table pem-table mdl-shadow--2dp" style="white-space: normal;">
+                    <thead>
+                        <tr>
+                            <th class="mdl-data-table__cell--non-numeric">Id</th>
+                            <th class="mdl-data-table__cell--non-numeric">Adresse Projet</th>
+                            <th class="mdl-data-table__cell--non-numeric">Etat</th>
+                            <th class="mdl-data-table__cell--non-numeric">Nom Demandeur</th>
+                            <th class="mdl-data-table__cell--non-numeric">Prénom Demandeur</th>
+                            <th class="mdl-data-table__cell--non-numeric">Email Demandeur</th>
+                            <th class="mdl-data-table__cell--non-numeric">Adresse Demandeur</th>
+                            <th class="mdl-data-table__cell--non-numeric">Téléphone Demandeur</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @for(application <- applicationsToCreate) {
+                        <tr>
+                            <td class="mdl-data-table__cell--non-numeric">
+                                @application.id
+                            </td>
+                            <td class="mdl-data-table__cell--non-numeric">
+                                @application.address
+                            </td>
+                            <td class="mdl-data-table__cell--non-numeric">
+                                @application.status
+                            </td>
+                            <td class="mdl-data-table__cell--non-numeric">
+                                @application.applicantLastname
+                            </td>
+                            <td class="mdl-data-table__cell--non-numeric">
+                                @application.applicantFirstname
+                            </td>
+                            <td class="mdl-data-table__cell--non-numeric">
+                                @application.applicantEmail
+                            </td>
+                            <td class="mdl-data-table__cell--non-numeric">
+                                @application.applicantAddress
+                            </td>
+                            <td class="mdl-data-table__cell--non-numeric">
+                                @application.applicantPhone
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        @if(applicationsNotImported.nonEmpty) {
+            <div class="mdl-cell mdl-cell--12-col">
+                <h2 class="mdl-cell mdl-cell--12-col">Demandes ne pouvant pas être reconnue</h2>
+                <ul>
+                @for(application <- applicationsNotImported) {
+                    <li>@application</li>
+                }
+                </ul>
+            </div>
+        }
+    }
+}

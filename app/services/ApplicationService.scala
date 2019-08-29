@@ -75,6 +75,10 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
     SQL("SELECT * FROM application_imported INNER JOIN application_extra ON (application_imported.id = application_extra.application_id) WHERE id = {id} ").on('id -> applicationId).as(simple.singleOpt)
   }
 
+  def findByApplicationIds(ids: List[String]) = db.withConnection { implicit connection =>
+    SQL"""SELECT * FROM application_imported INNER JOIN application_extra ON (application_imported.id = application_extra.application_id) WHERE ARRAY[$ids]::uuid[] @> ARRAY[id]::uuid[]""".as(simple.*)
+  }
+
   def insert(application: Application) = db.withTransaction { implicit connection =>
     SQL(
       """
@@ -131,7 +135,11 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
 
   def update(id: String, applicationEdit: ApplicationEdit) = db.withConnection { implicit connection =>
     SQL"""UPDATE application_extra SET
-            applicant_email = ${applicationEdit.applicantEmail}
+            applicant_email = ${applicationEdit.applicantEmail},
+            applicant_firstname = ${applicationEdit.applicantFirstname},
+            applicant_lastname = ${applicationEdit.applicantLastname},
+            applicant_address = ${applicationEdit.applicantAddress},
+            applicant_phone = ${applicationEdit.applicantPhone}
           WHERE application_id = ${id}
     """.executeUpdate() == 1
   }
