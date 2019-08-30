@@ -25,6 +25,7 @@ import utils.Charset
 import utils.{Hash, UUID}
 
 import scala.io.Source
+import scala.util.Try
 
 @Singleton
 class ApplicationController @Inject() (ws: WSClient,
@@ -94,7 +95,14 @@ class ApplicationController @Inject() (ws: WSClient,
   }
 
   def allCSV = loginAction { implicit request =>
+    val year = request.getQueryString("year").flatMap(yearString => scala.util.control.Exception.allCatch.opt(yearString.toInt))
     val responses = applicationService.findByCity(request.currentCity)
+    val filteredResponses = year match {
+      case Some(year) =>
+        responses.map(_.creationDate.getYear == year)
+      case _ =>
+        responses
+    }
     val agents = agentService.all(request.currentCity)
     val date = DateTime.now(timeZone).toString("dd-MMM-YYY-HHhmm", new Locale("fr"))
     Ok(views.html.allApplicationsCSV(responses,agents)).as("text/csv").withHeaders("Content-Disposition" -> s"""attachment; filename="${request.currentCity}-${date}.csv"""" )
