@@ -51,12 +51,18 @@
 </script>
 }{
     <input class="mdl-cell mdl-cell--12-col" type="search" placeholder="Filtrer les demandes (saisir nom, adresse ou un mot clé contenu dans la demande)" id="search-input" onsearch="onSearch()" oninput="onSearch()"/><br>
-    <div class="mdl-cell mdl-cell--12-col pem-container">
+    <div class="mdl-cell mdl-cell--12-col pem-container mdl-grid">
     @defining(cityApplications.groupBy(_._1.creationDate.getYear).toList.sortBy(_._1).reverse) {   applicationsByYear =>
         @for((year, applications) <- applicationsByYear) {
-        <h3>@year</h3>
+        <h3 class="mdl-cell mdl-cell--8-col">@year</h3>    @if(agent.instructor || agent.admin) {
+                <button class="mdl-button mdl-js-button mdl-button--raised mdl-cell mdl-cell--4-col" onclick="document.location = '@routes.ApplicationController.allCSV()?year=@year'">
+                    Exporter l'année @year en CSV
+                </button>
+            }
     @if(agent.instructor || agent.admin) {
+        <div class="mdl-cell mdl-cell--12-col">
          Total : @applications.size / @List("Nouvelle", "En cours", "Favorable", "Défavorable", "Invalide").map(status => s"$status : ${applications.count(_._1.status == status)}").mkString(" / ")
+        </div>
     }
     <table class="mdl-data-table mdl-js-data-table pem-table mdl-shadow--2dp" style="white-space: normal;">
         <thead>
@@ -119,7 +125,7 @@
     }
     @if(agent.instructor || agent.admin) {
         <button class="mdl-button mdl-js-button mdl-button--raised mdl-cell mdl-cell--8-col mdl-cell--2-offset" onclick="document.location = '@routes.ApplicationController.allCSV()'">
-        Télécharger CSV
+        Exporter toutes les demandes en CSV
         </button>
     }
 </div>
