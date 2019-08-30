@@ -502,7 +502,7 @@ class ApplicationController @Inject() (ws: WSClient,
   def fixPhoneNumber(phoneNumber: String): String = {
     val phone = "^[1-9].*$".r
     phoneNumber match {
-      case phoneNumber if phoneNumber.startsWith("33") && phoneNumber.length > 7 =>
+      case phoneNumber if phoneNumber.startsWith("33") && phoneNumber.length > 9 =>
         s"+$phoneNumber"
       case phone() =>
         s"0$phoneNumber"
