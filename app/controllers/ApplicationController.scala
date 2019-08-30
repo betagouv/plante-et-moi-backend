@@ -16,11 +16,15 @@ import actions.{LoginAction, RequestWithAgent}
 import formats.FormRequireBoolean
 import models.Forms.ApplicationEdit
 import org.webjars.play.WebJarsUtil
+import com.github.tototoshi.csv._
 
 import scala.concurrent.Future
 import play.api.libs.mailer._
 import services._
+import utils.Charset
 import utils.{Hash, UUID}
+
+import scala.io.Source
 
 @Singleton
 class ApplicationController @Inject() (ws: WSClient,
@@ -130,7 +134,11 @@ class ApplicationController @Inject() (ws: WSClient,
 
   val applicationEditForm = Form(
     mapping(
-      "applicantEmail" -> email
+      "applicantEmail" -> optional(email),
+      "applicantFirstname" -> optional(text),
+      "applicantLastname" -> optional(text),
+      "applicantAddress" -> optional(text),
+      "applicantPhone" -> optional(text)
     )(ApplicationEdit.apply)(ApplicationEdit.unapply)
   )
 
@@ -187,14 +195,13 @@ class ApplicationController @Inject() (ws: WSClient,
             }).flatMap(emailTemplateService.get(application._1.city))
 
             val emails = emailSentService.findByApplicationId(application._1.id)
-
             Ok(views.html.application(application._1, agent, reviews, comments, emailTemplate, emails, agents, formWithErrors))
-            
           },
           applicationEdit => {
-            val newApplication = application._1.copy(newApplicantEmail = Some(applicationEdit.applicantEmail))
-            if(applicationService.update(id, applicationEdit)) {
-              val emailSent = emailSentService.findBySentTo(applicationEdit.applicantEmail, Email.Type.NEW_APPLICATION_APPLICANT)
+            val applicationEditFix = applicationEdit.fixFrom(application._1)
+            val newApplication = application._1.copy(newApplicantEmail = applicationEdit.applicantEmail)
+            if(applicationService.update(id, applicationEditFix)) {
+              val emailSent = emailSentService.findBySentTo(newApplication.applicantEmail, Email.Type.NEW_APPLICATION_APPLICANT)
               if(emailSent.isEmpty) {
                  notificationsService.newApplication(newApplication, notifyInstructors = false)
               }
@@ -465,6 +472,71 @@ class ApplicationController @Inject() (ws: WSClient,
         }
       case _ =>
         BadRequest("Error pour l'ajout du commentaire: la demande n'existe pas ou le contenu du formulaire est incorrect. Vous pouvez signaler l'erreur à l'équipe Plante et Moi")
+    }
+  }
+
+
+  val applicationsChangesForm = Form(
+    tuple(
+      "csv" -> nonEmptyText,
+      "acceptModification" -> default(boolean, false)
+    )
+  )
+
+  def importForm() = loginAction { implicit request =>
+    if (!request.currentAgent.instructor) {
+      Unauthorized("Vous n'avez pas le droit d'importer des modifications")
+    } else {
+      Ok(views.html.importApplicationsChanges(applicationsChangesForm, request.currentAgent))
+    }
+  }
+
+  def readCSV(csvText: String) = {
+    implicit object SemiConFormat extends DefaultCSVFormat {
+      override val delimiter = ';'
+    }
+    val reader = CSVReader.open(Source.fromString(csvText))
+    for { applicationMap <- reader.allWithHeaders()
+          applicationMapClean = applicationMap.mapValues(Charset.fixUTF8toLatin1)
+          applicationOption = Application.fromMap(applicationMapClean)
+    } yield applicationOption.map(Right.apply).getOrElse(Left(applicationMap))
+  }
+
+  def importFormPost() = loginAction { implicit request =>
+    if (!request.currentAgent.instructor) {
+      Unauthorized("Vous n'avez pas le droit d'importer des modifications")
+    } else {
+      applicationsChangesForm.bindFromRequest.fold(
+        formWithErrors => {
+          BadRequest(views.html.importApplicationsChanges(formWithErrors, request.currentAgent))
+        },
+        result => {
+          var (csvText, acceptModification) = result
+          val applicationsParsed = readCSV(csvText)
+          val applicationsImported = applicationsParsed.flatMap(_.toOption)
+          val applicationsNotImported = applicationsParsed.map(_.swap).flatMap(_.toOption)
+          val applicationFromDB = applicationService.findByApplicationIds(applicationsImported.map(_.id))
+          val applicationsImportedInDB = for {
+            applicationImported <- applicationsImported
+            applicationInDB <- applicationFromDB.find(_.id == applicationImported.id)
+            if(applicationInDB.city == request.currentCity)
+          } yield (applicationInDB, applicationImported)
+          val applicationsImportedInDBIds = applicationsImportedInDB.map(_._1.id)
+          val applicationsImportedToCreate = applicationsImported
+            .filterNot(application => applicationsImportedInDBIds.contains(application.id))
+          if(acceptModification) {
+            for((oldApplication, newApplication) <- applicationsImportedInDB) {
+              val applicationEdit = ApplicationEdit.fromApplication(newApplication).fixFrom(oldApplication)
+              if(List("Favorable", "Défavorable","Invalide").contains(newApplication.status)) {
+                applicationService.update(newApplication)
+              }
+              applicationService.update(newApplication.id, applicationEdit)
+            }
+            Redirect(routes.ApplicationController.all()).flashing("success" -> "Import terminé")
+          } else {
+            Ok(views.html.importApplicationsChangesValidation(applicationsImportedInDB, applicationsImportedToCreate, applicationsNotImported, csvText, request.currentAgent))
+          }
+        })
     }
   }
 }
