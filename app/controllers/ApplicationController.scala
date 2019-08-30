@@ -21,6 +21,7 @@ import com.github.tototoshi.csv._
 import scala.concurrent.Future
 import play.api.libs.mailer._
 import services._
+import utils.Charset
 import utils.{Hash, UUID}
 
 import scala.io.Source
@@ -496,7 +497,8 @@ class ApplicationController @Inject() (ws: WSClient,
     }
     val reader = CSVReader.open(Source.fromString(csvText))
     for { applicationMap <- reader.allWithHeaders()
-        applicationOption = Application.fromMap(applicationMap)
+          applicationMapClean = applicationMap.mapValues(Charset.fixUTF8toLatin1)
+          applicationOption = Application.fromMap(applicationMapClean)
     } yield applicationOption.map(Right.apply).getOrElse(Left(applicationMap))
   }
 
