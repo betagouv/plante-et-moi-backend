@@ -2,6 +2,8 @@ package utils
 
 object Charset {
     private val tableUTF8toLatin1 = Map(
+        "â€™" -> "’",
+        "à¼" -> "ü",
         "Ã€" -> "À",
         "Ã" -> "Á",
         "Ã‚" -> "Â",

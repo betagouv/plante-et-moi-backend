@@ -491,6 +491,19 @@ class ApplicationController @Inject() (ws: WSClient,
     }
   }
 
+  def fixPhoneNumber(phoneNumber: String): String = {
+    val phone = "^[1-9].*$".r
+    phoneNumber match {
+      case phoneNumber if phoneNumber.startsWith("33") && phoneNumber.length > 7 =>
+        s"+$phoneNumber"
+      case phone() =>
+        s"0$phoneNumber"
+      case _ =>
+        phoneNumber
+    }
+
+  }
+
   def readCSV(csvText: String) = {
     implicit object SemiConFormat extends DefaultCSVFormat {
       override val delimiter = ';'
@@ -499,8 +512,12 @@ class ApplicationController @Inject() (ws: WSClient,
     for { applicationMap <- reader.allWithHeaders()
           applicationMapClean = applicationMap.mapValues(Charset.fixUTF8toLatin1)
           applicationOption = Application.fromMap(applicationMapClean)
-    } yield applicationOption.map(Right.apply).getOrElse(Left(applicationMap))
+          applicationOptionWithCleanNumber = applicationOption.map(
+            application => application.copy(sourceApplicantPhone = application.sourceApplicantPhone.map(fixPhoneNumber))
+          )
+    } yield applicationOptionWithCleanNumber.map(Right.apply).getOrElse(Left(applicationMap))
   }
+
 
   def importFormPost() = loginAction { implicit request =>
     if (!request.currentAgent.instructor) {
