@@ -44,7 +44,7 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
                           language: Option[String],
                           fields: List[Field],
                           hidden: List[String]
-                          /* welvcome_screens,
+                          /* welcome_screens,
                              thankyou_screens,
                              logic,
                              theme,
@@ -230,9 +230,13 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
       ).get
       if(answer._type == "file_url")
         files += answer.file_url.get
-      else if(answer._type == "email")
-        email = answer.email.get
-      else if(answer._type == "text") {
+      else if(answer._type == "email") {
+        if(fieldTitle.contains("confirmer")) {
+          fields += fieldTitle -> answer.email.get
+        } else {
+          email = answer.email.get
+        }
+      } else if(answer._type == "text") {
         val text = answer.text.get.toLowerCase
         if(fieldTitle.contains("adresse de votre")) {
           address = text
@@ -244,6 +248,8 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
           applicantPhone = Some(text)
         } else if(fieldTitle.endsWith("adresse postale")) {
           applicantAddress = Some(text)
+        } else {
+          fields += fieldTitle -> text
         }
       }
       else if(answer._type == "boolean") {
