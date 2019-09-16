@@ -142,9 +142,10 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
     }
   }
 
-  private lazy val typeformIds = configuration.underlying.getString("typeform.ids").split(",")
-  lazy val key = configuration.underlying.getString("typeform.key")
-  private lazy val domains = configuration.underlying.getString("typeform.domains").split(",")
+  private val typeformIds = configuration.underlying.getString("typeform.ids").split(",")
+  private val key = configuration.underlying.getString("typeform.key")
+  private val importLast =  configuration.underlying.getInt("typeform.importLast")
+  private val domains = configuration.underlying.getString("typeform.domains").split(",")
 
   private val refresh = configuration.getMilliseconds("typeform.refresh") match {
     case Some(t) => t millis
@@ -158,7 +159,7 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
   private def getApplicationForForm(id: String) = {
     for {
       formResult <- getForm(id, key)
-      answersResult <- getFormAnswer(id, key, true, 100)
+      answersResult <- getFormAnswer(id, key, true, importLast)
     } yield (formResult, answersResult) match {
       case (Some(form), Some(result)) =>
         result.items
