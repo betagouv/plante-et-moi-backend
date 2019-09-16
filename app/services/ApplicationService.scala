@@ -143,4 +143,11 @@ class ApplicationService @Inject()(dbapi: DBApi) extends AnormJson with AnormCoo
           WHERE application_id = ${id}
     """.executeUpdate() == 1
   }
+
+  def updateFixImport(application: Application) = db.withConnection { implicit connection =>
+    SQL"""UPDATE application_imported SET
+          fields = ${Json.toJson(application.fields)}
+          WHERE id = ${application.id}
+    """.executeUpdate()
+  }
 }

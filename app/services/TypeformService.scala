@@ -191,6 +191,8 @@ class TypeformService @Inject()(system: ActorSystem, configuration: play.api.Con
         if (succesNotification) {
           applicationService.insert(application)
         }
+      } else {
+        applicationService.updateFixImport(application)
       }
     }
   }
