@@ -16,7 +16,7 @@ libraryDependencies ++= Seq(
   guice
 )
 
-libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
+libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test
 
 libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.6.3",
