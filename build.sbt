@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
   "org.webjars.bower" % "material-design-lite" % "1.3.0",
   "org.webjars" % "material-design-icons" % "3.0.1",
   "org.webjars.npm" % "roboto-fontface" % "0.9.0",
-  "org.webjars.npm" % "leaflet" % "1.0.2",
+  "org.webjars.npm" % "leaflet" % "1.0.3",
   "org.postgresql" % "postgresql" % "42.2.2",
   "org.playframework.anorm" %% "anorm" % "2.6.2",
   "com.typesafe.play" %% "play-mailer" % "7.0.0" ,
