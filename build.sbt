@@ -25,9 +25,9 @@ libraryDependencies ++= Seq(
   "org.webjars.npm" % "roboto-fontface" % "0.9.0",
   "org.webjars.npm" % "leaflet" % "1.0.2",
   "org.postgresql" % "postgresql" % "42.2.2",
-  "org.playframework.anorm" %% "anorm" % "2.6.2",
+  "org.playframework.anorm" %% "anorm" % "2.6.5",
   "com.typesafe.play" %% "play-mailer" % "7.0.0" ,
-  "org.playframework.anorm" %% "anorm" % "2.6.2",
+  "org.playframework.anorm" %% "anorm" % "2.6.5",
   "com.typesafe.play" %% "play-json-joda" % "2.7.3",
   "com.typesafe.play" %% "play-mailer-guice" % "7.0.0",
   "com.github.tototoshi" %% "scala-csv" % "1.3.6"
