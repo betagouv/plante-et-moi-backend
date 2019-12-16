@@ -35,7 +35,7 @@ libraryDependencies ++= Seq(
 
 
 // Crash
-libraryDependencies += "io.sentry" % "sentry-logback" % "1.7.5"
+libraryDependencies += "io.sentry" % "sentry-logback" % "1.7.29"
 
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "fr.gouv.beta.controllers._"
