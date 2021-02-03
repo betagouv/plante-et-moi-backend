@@ -21,7 +21,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2
 libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.6.3",
   "org.webjars.bower" % "material-design-lite" % "1.3.0",
-  "org.webjars" % "material-design-icons" % "3.0.1",
+  "org.webjars" % "material-design-icons" % "4.0.0",
   "org.webjars.npm" % "roboto-fontface" % "0.9.0",
   "org.webjars.npm" % "leaflet" % "1.0.2",
   "org.postgresql" % "postgresql" % "42.2.2",
